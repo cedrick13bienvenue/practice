@@ -76,6 +76,7 @@ img {
 }
 .showcase p {
     margin: 20px 0;
+    font-weight: 300;
 }
 
 .showcase .grid {

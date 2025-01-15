@@ -58,7 +58,8 @@
 /* Margin */
 
 .my-1 {
-    margin: 1rem 0;
+    margin: auto;
+    font-weight: 300;
 }
 
 .my-2 {
