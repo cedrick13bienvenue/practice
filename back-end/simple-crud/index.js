@@ -17,6 +17,7 @@ app.post('/api/products', (req, res)=>{
     res.send(req.body)
 })
 
+
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log('Connected to database!');
