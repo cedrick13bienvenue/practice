@@ -13,7 +13,7 @@ app.get('/',(req, res)=>{
 })
 
 app.post('/api/products', (req, res)=>{
-    console.log(req.body)
+    console.log("Request Body:",req.body)
     res.send(req.body)
 })
 
