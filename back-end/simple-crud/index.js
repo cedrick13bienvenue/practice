@@ -5,14 +5,11 @@ const mongoose = require('mongoose');
 const Product = require('./models/product.model')
 const app = express()
 
-
 app.use(express.json())
-
 
 app.get('/',(req, res)=>{
     res.send("Hello from Node API!")
 })
-
 
 app.get('/api/products', async (req,res) => {
      try {
@@ -24,7 +21,6 @@ app.get('/api/products', async (req,res) => {
      }  
 })
 
-
 app.post('/api/products', async (req, res)=>{
     try {
        const product =  await Product.create(req.body);
@@ -33,7 +29,6 @@ app.post('/api/products', async (req, res)=>{
        res.status(500).json({message: error.message})
     }
 })
-
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
