@@ -52,7 +52,10 @@ app.post("/api/products", async (req, res) => {
   }
 });
 
-// update a product
+// ----------------------------
+// UPDATE: Update a product by ID
+// Endpoint: PUT /api/product/:id
+// ----------------------------
 
 app.put("/api/product/:id", async (req, res) => {
   try {
