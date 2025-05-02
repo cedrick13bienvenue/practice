@@ -71,6 +71,10 @@ app.put("/api/product/:id", async (req, res) => {
   }
 });
 
+// ----------------------------
+// DATABASE CONNECTION + SERVER START
+// ----------------------------
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
