@@ -38,6 +38,11 @@ app.get("/api/product/:id", async (req, res) => {
   }
 });
 
+// ----------------------------
+// CREATE: Add a new product
+// Endpoint: POST /api/products
+// ----------------------------
+
 app.post("/api/products", async (req, res) => {
   try {
     const product = await Product.create(req.body);
