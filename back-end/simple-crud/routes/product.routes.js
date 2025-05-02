@@ -8,19 +8,13 @@ const {
   deleteProduct,
 } = require("../controllers/product.controller");
 
-// READ all
+const validateProduct = require("../middleware/validateProduct");
+
+// Routes
 router.get("/products", getAllProducts);
-
-// READ one
 router.get("/product/:id", getProductById);
-
-// CREATE
-router.post("/products", createProduct);
-
-// UPDATE
-router.put("/product/:id", updateProduct);
-
-// DELETE
+router.post("/products", validateProduct, createProduct); // validation added here
+router.put("/product/:id", validateProduct, updateProduct); // validation added here
 router.delete("/product/:id", deleteProduct);
 
 module.exports = router;
