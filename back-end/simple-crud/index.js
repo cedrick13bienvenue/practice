@@ -1,23 +1,24 @@
 require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
-const productRoutes = require("./routes/product.routes"); // ⬅️ Import the routes
+const productRoutes = require("./routes/product.routes");
 
 const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); // Add this for urlencoded forms
 
-// Default route
+// Routes
+app.use("/api", productRoutes);
+
+// Default Route
 app.get("/", (req, res) => {
   res.send("Hello from Node API!");
 });
 
-// Product routes
-app.use("/api", productRoutes); // ⬅️ All routes will be prefixed with /api
-
-// MongoDB connection
+// Database Connection and Server Start
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
