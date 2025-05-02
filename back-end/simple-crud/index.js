@@ -23,6 +23,11 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
+// ----------------------------
+// READ: Get a single product by ID
+// Endpoint: GET /api/product/:id
+// ----------------------------
+
 app.get("/api/product/:id", async (req, res) => {
   try {
     const { id } = req.params;
