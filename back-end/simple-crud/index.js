@@ -10,7 +10,10 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Hello from Node API!");
 });
-
+// ----------------------------
+// READ: Get all products
+// Endpoint: GET /api/products
+// ----------------------------
 app.get("/api/products", async (req, res) => {
   try {
     const products = await Product.find({});
