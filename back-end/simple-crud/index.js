@@ -8,7 +8,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Add this for urlencoded forms
+app.use(express.urlencoded({ extended: true })); // Adding  this for urlencoded forms
 
 // Routes
 app.use("/api", productRoutes);
