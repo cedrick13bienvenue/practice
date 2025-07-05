@@ -109,15 +109,6 @@ node index.js delete 1
 
 ---
 
-## 📥 Future Improvements (Optional)
-
-- Add due dates or priorities
-- Colorful terminal output (`chalk`)
-- Interactive input (`inquirer`)
-- Global installation (`npm link`)
-
----
-
 ## 👨‍💻 Author
 
 **Bienvenue Cedrick**
