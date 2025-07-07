@@ -5,9 +5,13 @@ const filePath = path.join(__dirname, "..", "tasks.json");
 
 function loadTasks() {
   try {
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, "[]");
+    }
     const data = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(data);
-  } catch {
+  } catch (error) {
+    console.error("❌ Failed to load tasks:", error);
     return [];
   }
 }
