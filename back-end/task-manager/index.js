@@ -1,32 +1,77 @@
-#!/usr/bin/env node
-
+const inquirer = require("inquirer");
 const addTask = require("./commands/add");
 const listTasks = require("./commands/list");
 const markDone = require("./commands/done");
 const deleteTask = require("./commands/delete");
 
-const command = process.argv[2];
-const args = process.argv.slice(3);
+async function mainMenu() {
+  console.clear();
+  console.log("📝 Task Manager CLI\n");
 
-switch (command) {
-  case "add":
-    addTask(args.join(" "));
-    break;
-  case "list":
-    listTasks();
-    break;
-  case "done":
-    markDone(args[0]);
-    break;
-  case "delete":
-    deleteTask(args[0]);
-    break;
-  default:
-    console.log(`
-Usage:
-  node index.js add "Task description"
-  node index.js list
-  node index.js done [task_number]
-  node index.js delete [task_number]
-    `);
+  const { action } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "action",
+      message: "Choose an action:",
+      choices: [
+        { name: "➕ Add Task", value: "add" },
+        { name: "📋 List Tasks", value: "list" },
+        { name: "✅ Mark Task as Done", value: "done" },
+        { name: "🗑️ Delete Task", value: "delete" },
+        { name: "🚪 Exit", value: "exit" },
+      ],
+    },
+  ]);
+
+  switch (action) {
+    case "add":
+      const { text, deadline } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "text",
+          message: "Enter task description:",
+        },
+        {
+          type: "input",
+          name: "deadline",
+          message: "Enter deadline (e.g. 2025-07-10T23:59):",
+        },
+      ]);
+      addTask(text, deadline);
+      break;
+
+    case "list":
+      listTasks();
+      break;
+
+    case "done":
+      const { doneIndex } = await inquirer.prompt([
+        {
+          type: "number",
+          name: "doneIndex",
+          message: "Enter task number to mark as done:",
+        },
+      ]);
+      markDone(doneIndex);
+      break;
+
+    case "delete":
+      const { deleteIndex } = await inquirer.prompt([
+        {
+          type: "number",
+          name: "deleteIndex",
+          message: "Enter task number to delete:",
+        },
+      ]);
+      deleteTask(deleteIndex);
+      break;
+
+    case "exit":
+      console.log("\n👋 Goodbye!\n");
+      process.exit();
+  }
+
+  setTimeout(mainMenu, 500);
 }
+
+mainMenu();
