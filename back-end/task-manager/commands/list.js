@@ -5,6 +5,7 @@ function listTasks() {
   const now = new Date();
 
   let updated = false;
+
   tasks.forEach((task) => {
     if (!task.done && !task.missed && new Date(task.deadline) < now) {
       task.missed = true;
@@ -21,8 +22,8 @@ function listTasks() {
       const status = task.done
         ? "✅"
         : task.missed
-        ? "⚠️ Missed"
-        : "❌ Pending";
+          ? "⚠️ Missed"
+          : "❌ Pending";
       console.log(`${index + 1}. ${status} | ${task.text}`);
       console.log(`    📅 Created: ${task.createdAt}`);
       console.log(`    ⏳ Deadline: ${task.deadline}`);
