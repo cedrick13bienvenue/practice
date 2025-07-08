@@ -1,20 +1,11 @@
 const { loadTasks, saveTasks } = require("../utils/tasks");
 
-function addTask(taskText, deadline) {
+function addTask(taskText) {
   const tasks = loadTasks();
-
-  const newTask = {
-    id: Date.now(),
-    text: taskText,
-    done: false,
-    missed: false,
-    createdAt: new Date().toISOString(),
-    deadline: new Date(deadline).toISOString(),
-  };
-
+  const newTask = { id: Date.now(), text: taskText, done: false };
   tasks.push(newTask);
   saveTasks(tasks);
-  console.log("✅ Task added with deadline.");
+  console.log("✅ Task added.");
 }
 
 module.exports = addTask;
