@@ -96,6 +96,11 @@ app.delete('/blogs/:id', (req: Request, res: Response) => {
   res.json({ message: 'Blog deleted successfully' });
 });
 
+app.get('/', (_req: Request, res: Response) => {
+  res.send('📝 Blog Backend API!');
+});
+
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
