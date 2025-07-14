@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import blogRoutes from './routes/blog-routes';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+
+dotenv.config();
 
 const app = express();
 const PORT = 5500;
