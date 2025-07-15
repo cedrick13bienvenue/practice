@@ -1,21 +1,17 @@
-import { Router } from 'express';
+import express from 'express';
 import {
   createBlog,
   getAllBlogs,
-  updateBlog,
+  getBlogById,
   deleteBlog,
 } from '../controllers/blog-controller';
-import { validateBlog } from '../middleware/validate-blog';
+import { validateAddBlog, validateId } from '../middlewares/validate-blog';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/', (_req, res) => {
-  res.send('📝 Blog Backend API!');
-});
-
-router.get('/blogs', getAllBlogs);
-router.post('/blogs', validateBlog, createBlog);
-router.put('/blogs/:id', validateBlog, updateBlog);
-router.delete('/blogs/:id', deleteBlog);
+router.post('/', validateAddBlog, createBlog);
+router.get('/', getAllBlogs);
+router.get('/:id', validateId, getBlogById);
+router.delete('/:id', validateId, deleteBlog);
 
 export default router;
