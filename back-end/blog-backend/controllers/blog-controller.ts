@@ -1,37 +1,37 @@
 import { Request, Response } from 'express';
 import Blog from '../models/blog-model';
+import { ResponseService } from '../utils/response';
+import { generateSlug } from '../utils/helper';
 
-// CREATE
 export const createBlog = async (req: Request, res: Response) => {
-  try {
-    const blog = new Blog(req.body);
-    await blog.save();
-    res.status(201).json(blog);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to save blog' });
-  }
+  const { title, description, author, content, isPublished } = req.body;
+
+  const blog = new Blog({
+    title,
+    slug: generateSlug(title),
+    description,
+    author,
+    content,
+    isPublished,
+  });
+
+  const saved = await blog.save();
+  ResponseService({ data: saved, message: 'Blog created', res });
 };
 
-// READ
 export const getAllBlogs = async (_req: Request, res: Response) => {
-  const blogs = await Blog.find().sort({ updated: -1 });
-  res.json(blogs);
+  const blogs = await Blog.find();
+  ResponseService({ data: { blogs }, message: 'All blogs', res });
 };
 
-// UPDATE
-export const updateBlog = async (req: Request, res: Response) => {
-  const blog = await Blog.findByIdAndUpdate(
-    req.params.id,
-    { ...req.body, updated: new Date() },
-    { new: true }
-  );
-  if (!blog) return res.status(404).json({ error: 'Blog not found' });
-  res.json(blog);
+export const getBlogById = async (req: Request, res: Response) => {
+  const blog = await Blog.findById(req.params.id);
+  if (!blog) return ResponseService({ res, status: 404, message: 'Blog not found', success: false });
+  ResponseService({ data: blog, res });
 };
 
-// DELETE
 export const deleteBlog = async (req: Request, res: Response) => {
-  const result = await Blog.findByIdAndDelete(req.params.id);
-  if (!result) return res.status(404).json({ error: 'Blog not found' });
-  res.json({ message: 'Blog deleted successfully' });
+  const blog = await Blog.findByIdAndDelete(req.params.id);
+  if (!blog) return ResponseService({ res, status: 404, message: 'Blog not found', success: false });
+  ResponseService({ res, message: 'Blog deleted successfully' });
 };
