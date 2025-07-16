@@ -1,0 +1,69 @@
+import { Request, Response } from 'express';
+import { blogModel } from '../models/blog-model';
+import { generateSlug } from '../utils/helper';
+import { ResponseService } from '../utils/response';
+
+export const getAllBlogs = async (_req: Request, res: Response) => {
+  try {
+    const blogs = await blogModel.find();
+    ResponseService({ res, data: blogs });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const getABlog = async (req: Request, res: Response) => {
+  try {
+    const blog = await blogModel.findById(req.params.id);
+    if (!blog) {
+      return ResponseService({
+        res,
+        status: 404,
+        success: false,
+        message: 'Blog not found',
+      });
+    }
+    ResponseService({ res, data: blog });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const createBlog = async (req: Request, res: Response) => {
+  try {
+    const { title, description, author, content, isPublished } = req.body;
+    const blog = new blogModel({
+      title,
+      slug: generateSlug(title),
+      description,
+      author,
+      content,
+      isPublished,
+      createdAt: new Date(),
+    });
+    await blog.save();
+    ResponseService({
+      res,
+      data: blog,
+      message: 'Blog created successfully',
+      status: 201,
+    });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
