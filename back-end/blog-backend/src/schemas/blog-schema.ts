@@ -11,3 +11,11 @@ export const AddBlogSchema = Joi.object({
 export const IdValidationSchema = Joi.object({
   id: Joi.string().length(24).required(),
 });
+
+export const UpdateBlogSchema = Joi.object({
+  title: Joi.string(),
+  description: Joi.string().min(20),
+  author: Joi.string(),
+  content: Joi.string(),
+  isPublished: Joi.boolean(),
+});
