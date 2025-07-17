@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { UserModel } from '../models/user-model';
 import { hashPassword } from '../utils/password';
 import { ResponseService } from '../utils/response';
+import { comparePassword } from '../utils/password';
+import { generateToken } from '../utils/jwt';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -38,6 +40,54 @@ export const registerUser = async (req: Request, res: Response) => {
         id: newUser._id,
         email: newUser.email,
         name: newUser.name,
+      },
+    });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return ResponseService({
+        res,
+        status: 401,
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    const isMatch = await comparePassword(password, user.password);
+    if (!isMatch) {
+      return ResponseService({
+        res,
+        status: 401,
+        success: false,
+        message: 'Invalid email or password',
+      });
+    }
+
+    const token = generateToken({ id: user._id.toString(), email: user.email });
+
+    ResponseService({
+      res,
+      message: 'Login successful',
+      data: {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
       },
     });
   } catch (error) {
