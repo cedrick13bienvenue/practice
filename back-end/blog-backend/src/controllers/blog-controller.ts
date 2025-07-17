@@ -67,3 +67,70 @@ export const createBlog = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const updateBlog = async (req: Request, res: Response) => {
+  try {
+    const blog = await blogModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        ...req.body,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!blog) {
+      return ResponseService({
+        res,
+        status: 404,
+        success: false,
+        message: 'Blog not found',
+      });
+    }
+
+    ResponseService({
+      res,
+      data: blog,
+      message: 'Blog updated successfully',
+    });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const deleteBlog = async (req: Request, res: Response) => {
+  try {
+    const blog = await blogModel.findByIdAndUpdate(
+      req.params.id,
+      { deletedAt: new Date() },
+      { new: true }
+    );
+
+    if (!blog) {
+      return ResponseService({
+        res,
+        status: 404,
+        success: false,
+        message: 'Blog not found',
+      });
+    }
+
+    ResponseService({
+      res,
+      data: blog,
+      message: 'Blog soft-deleted successfully',
+    });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
