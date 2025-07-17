@@ -70,14 +70,15 @@ export const createBlog = async (req: Request, res: Response) => {
 
 export const updateBlog = async (req: Request, res: Response) => {
   try {
-    const blog = await blogModel.findByIdAndUpdate(
-      req.params.id,
-      {
-        ...req.body,
-        updatedAt: new Date(),
-      },
-      { new: true }
-    );
+    const updateData: any = { ...req.body, updatedAt: new Date() };
+
+    if (updateData.title) {
+      updateData.slug = generateSlug(updateData.title);
+    }
+
+    const blog = await blogModel.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    });
 
     if (!blog) {
       return ResponseService({
