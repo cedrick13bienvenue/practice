@@ -135,3 +135,41 @@ export const deleteBlog = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const hardDeleteBlog = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return ResponseService({
+        res,
+        status: 400,
+        success: false,
+        message: 'Blog id is required in request body',
+      });
+    }
+
+    const deleted = await blogModel.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return ResponseService({
+        res,
+        status: 404,
+        success: false,
+        message: 'Blog not found',
+      });
+    }
+
+    ResponseService({
+      res,
+      message: 'Blog permanently deleted successfully',
+    });
+  } catch (error) {
+    ResponseService({
+      res,
+      status: 500,
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
