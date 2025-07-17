@@ -4,13 +4,15 @@ import {
   getAllBlogs,
   getABlog,
   updateBlog,      
-  deleteBlog,     
+  deleteBlog,
+  hardDeleteBlog     
 } from '../controllers/blog-controller';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 import {
   AddBlogSchema,
   IdValidationSchema,
-  UpdateBlogSchema,  
+  UpdateBlogSchema, 
+  IdInBodySchema 
 } from '../schemas/blog-schema';
 
 export const blogRouter = Router();
@@ -38,4 +40,10 @@ blogRouter.delete(
   '/blogs/:id',
   ValidationMiddleware({ type: 'params', schema: IdValidationSchema }),
   deleteBlog
+);
+
+blogRouter.delete(
+  '/blogs',
+  ValidationMiddleware({ type: 'body', schema: IdInBodySchema }),
+  hardDeleteBlog
 );
