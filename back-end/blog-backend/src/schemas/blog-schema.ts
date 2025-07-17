@@ -19,3 +19,8 @@ export const UpdateBlogSchema = Joi.object({
   content: Joi.string(),
   isPublished: Joi.boolean(),
 });
+
+export const IdInBodySchema = Joi.object({
+  id: Joi.string().length(24).required(),
+});
+
