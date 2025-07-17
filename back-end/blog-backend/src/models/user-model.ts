@@ -6,6 +6,11 @@ export enum Gender {
   Other = 'other',
 }
 
+export enum Role {
+  Admin = 'admin',
+  User = 'user',
+}
+
 const userSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -13,8 +18,9 @@ const userSchema = new Schema(
     password: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     gender: { type: String, enum: Object.values(Gender), required: true },
+    role: { type: String, enum: Object.values(Role), default: Role.User }, // ✅ NEW
   },
-  { timestamps: true } // createdAt and updatedAt handled automatically
+  { timestamps: true }
 );
 
 export const UserModel = model('users', userSchema);
