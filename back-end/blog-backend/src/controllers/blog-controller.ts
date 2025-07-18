@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { blogModel } from '../models/blog-model';
 import { generateSlug } from '../utils/helper';
 import { ResponseService } from '../utils/response';
+import { IRequestUser } from '../middlewares/protect';
 
 export const getAllBlogs = async (_req: Request, res: Response) => {
   try {
@@ -39,7 +40,7 @@ export const getABlog = async (req: Request, res: Response) => {
   }
 };
 
-export const createBlog = async (req: Request, res: Response) => {
+export const createBlog = async (req: IRequestUser, res: Response) => {
   try {
     const { title, description, author, content, isPublished } = req.body;
     const blog = new blogModel({

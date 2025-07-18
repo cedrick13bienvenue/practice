@@ -15,22 +15,33 @@ import {
   IdInBodySchema 
 } from '../schemas/blog-schema';
 
+import { protect } from '../middlewares/protect';
+import { roleChecker } from '../middlewares/role-checker';  // <-- import roleChecker here
+
 export const blogRouter = Router();
 
-blogRouter.get('/blogs', getAllBlogs);
+blogRouter.get('/blogs',
+
+   getAllBlogs
+  );
 blogRouter.get(
   '/blogs/:id',
   ValidationMiddleware({ type: 'params', schema: IdValidationSchema }),
   getABlog
 );
+
 blogRouter.post(
   '/blogs',
+  protect,
+  roleChecker(['admin']),   
   ValidationMiddleware({ type: 'body', schema: AddBlogSchema }),
   createBlog
 );
 
 blogRouter.put(
   '/blogs/:id',
+  protect,
+  roleChecker(['admin']),   
   ValidationMiddleware({ type: 'params', schema: IdValidationSchema }),
   ValidationMiddleware({ type: 'body', schema: UpdateBlogSchema }),
   updateBlog
@@ -38,12 +49,16 @@ blogRouter.put(
 
 blogRouter.delete(
   '/blogs/:id',
+  protect,
+  roleChecker(['admin']),   
   ValidationMiddleware({ type: 'params', schema: IdValidationSchema }),
   deleteBlog
 );
 
 blogRouter.delete(
   '/blogs',
+  protect,
+  roleChecker(['admin']),  
   ValidationMiddleware({ type: 'body', schema: IdInBodySchema }),
   hardDeleteBlog
 );
