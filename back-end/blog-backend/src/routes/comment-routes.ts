@@ -10,7 +10,7 @@ export const commentRouter = Router();
 commentRouter.post(
   '/blogs/:blogId/comments',
   protect,
-  roleChecker(['normal-user']),
+  roleChecker(['user']),
   ValidationMiddleware({ type: 'body', schema: AddCommentSchema }),
   createComment
 );
