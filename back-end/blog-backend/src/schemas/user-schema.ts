@@ -9,12 +9,12 @@ export const RegisterUserSchema = Joi.object({
     .valid(...Object.values(Gender))
     .required(),
   role: Joi.string()
-    .valid('admin', 'normal-user')
-    .required()
+    .valid('admin', 'user')
+    .optional()
+    .default('user')
 });
 
 export const LoginUserSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
 });
-
