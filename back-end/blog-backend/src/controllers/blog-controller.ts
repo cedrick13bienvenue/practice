@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { blogModel } from '../models/blog-model';
+import { LikeModel } from '../models/like-model';
+import { CommentModel } from '../models/comment-model';
 import { generateSlug } from '../utils/helper';
 import { ResponseService } from '../utils/response';
 import { IRequestUser } from '../middlewares/protect';
@@ -7,7 +9,22 @@ import { IRequestUser } from '../middlewares/protect';
 export const getAllBlogs = async (_req: Request, res: Response) => {
   try {
     const blogs = await blogModel.find();
-    ResponseService({ res, data: blogs });
+    
+    // Get likes and comments count for each blog
+    const blogsWithCounts = await Promise.all(
+      blogs.map(async (blog) => {
+        const likesCount = await LikeModel.countDocuments({ blog: blog._id });
+        const commentsCount = await CommentModel.countDocuments({ blog: blog._id });
+        
+        return {
+          ...blog.toObject(),
+          likesCount,
+          commentsCount,
+        };
+      })
+    );
+    
+    ResponseService({ res, data: blogsWithCounts });
   } catch (error) {
     ResponseService({
       res,
@@ -29,7 +46,18 @@ export const getABlog = async (req: Request, res: Response) => {
         message: 'Blog not found',
       });
     }
-    ResponseService({ res, data: blog });
+    
+    // Get likes and comments count
+    const likesCount = await LikeModel.countDocuments({ blog: blog._id });
+    const commentsCount = await CommentModel.countDocuments({ blog: blog._id });
+    
+    const blogWithCounts = {
+      ...blog.toObject(),
+      likesCount,
+      commentsCount,
+    };
+    
+    ResponseService({ res, data: blogWithCounts });
   } catch (error) {
     ResponseService({
       res,
