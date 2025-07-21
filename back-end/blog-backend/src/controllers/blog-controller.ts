@@ -5,6 +5,7 @@ import { CommentModel } from '../models/comment-model';
 import { generateSlug } from '../utils/helper';
 import { ResponseService } from '../utils/response';
 import { IRequestUser } from '../middlewares/protect';
+import { uploadFile } from '../utils/upload';
 
 export const getAllBlogs = async (_req: Request, res: Response) => {
   try {
@@ -71,16 +72,28 @@ export const getABlog = async (req: Request, res: Response) => {
 export const createBlog = async (req: IRequestUser, res: Response) => {
   try {
     const { title, description, author, content, isPublished } = req.body;
+
+    let imageUrl = '';
+    if (req.file) {
+      imageUrl = await uploadFile(req.file);
+    }
+
+    // Convert string 'true'/'false' to boolean
+    const isPublishedBool = isPublished === 'true' || isPublished === true;
+
     const blog = new blogModel({
       title,
       slug: generateSlug(title),
       description,
       author,
       content,
-      isPublished,
+      isPublished: isPublishedBool, // Use converted boolean
+      image: imageUrl,
       createdAt: new Date(),
     });
+
     await blog.save();
+
     ResponseService({
       res,
       data: blog,
@@ -88,6 +101,7 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
       status: 201,
     });
   } catch (error) {
+    console.error('Create blog error:', error); // Add this for debugging
     ResponseService({
       res,
       status: 500,
@@ -97,12 +111,22 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
   }
 };
 
+
 export const updateBlog = async (req: Request, res: Response) => {
   try {
     const updateData: any = { ...req.body, updatedAt: new Date() };
 
+    // Convert string 'true'/'false' to boolean if isPublished is provided
+    if (updateData.isPublished !== undefined) {
+      updateData.isPublished = updateData.isPublished === 'true' || updateData.isPublished === true;
+    }
+
     if (updateData.title) {
       updateData.slug = generateSlug(updateData.title);
+    }
+
+    if (req.file) {
+      updateData.image = await uploadFile(req.file); // Replace image with new upload
     }
 
     const blog = await blogModel.findByIdAndUpdate(req.params.id, updateData, {
@@ -124,6 +148,7 @@ export const updateBlog = async (req: Request, res: Response) => {
       message: 'Blog updated successfully',
     });
   } catch (error) {
+    console.error('Update blog error:', error); // Add this for debugging
     ResponseService({
       res,
       status: 500,
@@ -132,6 +157,7 @@ export const updateBlog = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 export const deleteBlog = async (req: Request, res: Response) => {
   try {
