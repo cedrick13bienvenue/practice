@@ -1,4 +1,5 @@
-import mongoose, { Schema, model } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
 export enum Gender {
   Male = 'male',
@@ -11,16 +12,50 @@ export enum Role {
   User = 'user',
 }
 
-const userSchema = new Schema(
+export interface UserAttributes {
+  id?: number;
+  name: string;
+  email: string;
+  password: string;
+  isActive?: boolean;
+  gender: Gender;
+  role?: Role;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class UserModel extends Model<UserAttributes> implements UserAttributes {
+  public id!: number;
+  public name!: string;
+  public email!: string;
+  public password!: string;
+  public isActive!: boolean;
+  public gender!: Gender;
+  public role!: Role;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+UserModel.init(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    isActive: { type: Boolean, default: true },
-    gender: { type: String, enum: Object.values(Gender), required: true },
-    role: { type: String, enum: Object.values(Role), default: Role.User }, // ✅ NEW
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+    gender: { type: DataTypes.ENUM(...Object.values(Gender)), allowNull: false },
+    role: { type: DataTypes.ENUM(...Object.values(Role)), defaultValue: Role.User },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'User',
+    tableName: 'users',
+    timestamps: true,
+  }
 );
 
-export const UserModel = model('users', userSchema);
+// Associations will be set up after all models are defined
+export const associateModels = (models: any) => {
+  UserModel.hasMany(models.BlogModel, { foreignKey: 'author', sourceKey: 'id' });
+  UserModel.hasMany(models.CommentModel, { foreignKey: 'user', sourceKey: 'id' });
+  UserModel.hasMany(models.LikeModel, { foreignKey: 'user', sourceKey: 'id' });
+};
