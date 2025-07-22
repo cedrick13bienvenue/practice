@@ -1,12 +1,40 @@
-import { Schema, model, Types } from 'mongoose';
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../config/db';
 
-const commentSchema = new Schema(
+export interface CommentAttributes {
+  id?: number;
+  blog: number;
+  user: number;
+  content: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class CommentModel extends Model<CommentAttributes> implements CommentAttributes {
+  public id!: number;
+  public blog!: number;
+  public user!: number;
+  public content!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+}
+
+CommentModel.init(
   {
-    blog: { type: Types.ObjectId, ref: 'blogs', required: true },
-    user: { type: Types.ObjectId, ref: 'users', required: true },
-    content: { type: String, required: true },
+    blog: { type: DataTypes.INTEGER, allowNull: false }, // Will be associated later
+    user: { type: DataTypes.INTEGER, allowNull: false }, // Will be associated later
+    content: { type: DataTypes.STRING, allowNull: false },
   },
-  { timestamps: true }
+  {
+    sequelize,
+    modelName: 'Comment',
+    tableName: 'comments',
+    timestamps: true,
+  }
 );
 
-export const CommentModel = model('comments', commentSchema);
+// Associations will be set up after all models are defined
+export const associateModels = (models: any) => {
+  CommentModel.belongsTo(models.BlogModel, { foreignKey: 'blog', targetKey: 'id' });
+  CommentModel.belongsTo(models.UserModel, { foreignKey: 'user', targetKey: 'id' });
+};
