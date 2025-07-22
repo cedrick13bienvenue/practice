@@ -6,6 +6,7 @@ import { blogRouter } from './src/routes/blog-routes';
 import { authRouter } from './src/routes/auth-routes';
 import { commentRouter } from './src/routes/comment-routes';
 import { likeRouter } from './src/routes/like-routes';
+import { syncModels } from './src/models';
 
 dotenv.config();
 
@@ -27,9 +28,10 @@ app.get('/', (_req, res) => {
   res.send('📝 Blog API');
 });
 
-// Connect to MongoDB
-connectDB();
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+(async () => {
+  await connectDB();
+  await syncModels();
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+})();
