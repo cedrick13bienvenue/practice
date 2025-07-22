@@ -1,16 +1,17 @@
 import { Request, Response } from 'express';
-import { LikeModel } from '../models/like-model';
-import { blogModel } from '../models/blog-model';
+import { LikeModel, LikeAttributes } from '../models/like-model';
+import { BlogModel } from '../models/blog-model';
+import { UserModel } from '../models/user-model';
 import { ResponseService } from '../utils/response';
 import { IRequestUser } from '../middlewares/protect';
 
 export const toggleLike = async (req: IRequestUser, res: Response) => {
   try {
     const { blogId } = req.params;
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     // Check if blog exists
-    const blog = await blogModel.findById(blogId);
+    const blog = await BlogModel.findByPk(blogId);
     if (!blog) {
       return ResponseService({
         res,
@@ -21,11 +22,11 @@ export const toggleLike = async (req: IRequestUser, res: Response) => {
     }
 
     // Check if user already liked this blog
-    const existingLike = await LikeModel.findOne({ blog: blogId, user: userId });
+    const existingLike = await LikeModel.findOne({ where: { blog: blogId, user: userId } });
 
     if (existingLike) {
       // Unlike: remove the like
-      await LikeModel.findByIdAndDelete(existingLike._id);
+      await LikeModel.destroy({ where: { id: existingLike.id } });
       return ResponseService({
         res,
         message: 'Blog unliked successfully',
@@ -33,11 +34,7 @@ export const toggleLike = async (req: IRequestUser, res: Response) => {
       });
     } else {
       // Like: create new like
-      const newLike = new LikeModel({
-        blog: blogId,
-        user: userId,
-      });
-      await newLike.save();
+      await LikeModel.create({ blog: Number(blogId), user: userId });
       return ResponseService({
         res,
         message: 'Blog liked successfully',
@@ -59,8 +56,11 @@ export const getBlogLikes = async (req: Request, res: Response) => {
     const { blogId } = req.params;
 
     // Get likes count and list of users who liked
-    const likes = await LikeModel.find({ blog: blogId }).populate('user', 'name email');
-    
+    const likes = await LikeModel.findAll({
+      where: { blog: blogId },
+      include: [{ model: UserModel, attributes: ['name', 'email'] }],
+    });
+
     ResponseService({
       res,
       message: 'Blog likes fetched successfully',
