@@ -1,14 +1,25 @@
-import mongoose from 'mongoose';
+import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const DB_NAME = process.env.DB_NAME!;
+const DB_USER = process.env.DB_USER!;
+const DB_PASSWORD = process.env.DB_PASSWORD!;
+const DB_HOST = process.env.DB_HOST || 'localhost';
+
+export const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+  host: DB_HOST,
+  dialect: 'postgres',
+  logging: false,
+});
 
 export const connectDB = async () => {
   try {
-    const MONGO_URI = process.env.MONGO_URI as string;
-    if (!MONGO_URI) throw new Error('MongoDB URI not found in .env');
-
-    await mongoose.connect(MONGO_URI);
-    console.log('✅ MongoDB connected successfully');
+    await sequelize.authenticate();
+    console.log('✅ PostgreSQL connected successfully');
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
+    console.error('❌ PostgreSQL connection error:', err);
+    throw err;
   }
 };
