@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { blogModel } from '../models/blog-model';
+import { BlogModel, BlogAttributes } from '../models/blog-model';
 import { LikeModel } from '../models/like-model';
 import { CommentModel } from '../models/comment-model';
 import { generateSlug } from '../utils/helper';
@@ -9,22 +9,19 @@ import { uploadFile } from '../utils/upload';
 
 export const getAllBlogs = async (_req: Request, res: Response) => {
   try {
-    const blogs = await blogModel.find();
-    
+    const blogs = await BlogModel.findAll();
     // Get likes and comments count for each blog
     const blogsWithCounts = await Promise.all(
       blogs.map(async (blog) => {
-        const likesCount = await LikeModel.countDocuments({ blog: blog._id });
-        const commentsCount = await CommentModel.countDocuments({ blog: blog._id });
-        
+        const likesCount = await LikeModel.count({ where: { blog: blog.id } });
+        const commentsCount = await CommentModel.count({ where: { blog: blog.id } });
         return {
-          ...blog.toObject(),
+          ...blog.toJSON(),
           likesCount,
           commentsCount,
         };
       })
     );
-    
     ResponseService({ res, data: blogsWithCounts });
   } catch (error) {
     ResponseService({
@@ -38,7 +35,7 @@ export const getAllBlogs = async (_req: Request, res: Response) => {
 
 export const getABlog = async (req: Request, res: Response) => {
   try {
-    const blog = await blogModel.findById(req.params.id);
+    const blog = await BlogModel.findByPk(req.params.id);
     if (!blog) {
       return ResponseService({
         res,
@@ -47,17 +44,14 @@ export const getABlog = async (req: Request, res: Response) => {
         message: 'Blog not found',
       });
     }
-    
     // Get likes and comments count
-    const likesCount = await LikeModel.countDocuments({ blog: blog._id });
-    const commentsCount = await CommentModel.countDocuments({ blog: blog._id });
-    
+    const likesCount = await LikeModel.count({ where: { blog: blog.id } });
+    const commentsCount = await CommentModel.count({ where: { blog: blog.id } });
     const blogWithCounts = {
-      ...blog.toObject(),
+      ...blog.toJSON(),
       likesCount,
       commentsCount,
     };
-    
     ResponseService({ res, data: blogWithCounts });
   } catch (error) {
     ResponseService({
@@ -71,29 +65,23 @@ export const getABlog = async (req: Request, res: Response) => {
 
 export const createBlog = async (req: IRequestUser, res: Response) => {
   try {
-    const { title, description, author, content, isPublished } = req.body;
-
+    const { title, description, content, isPublished } = req.body;
     let imageUrl = '';
     if (req.file) {
       imageUrl = await uploadFile(req.file);
     }
-
     // Convert string 'true'/'false' to boolean
     const isPublishedBool = isPublished === 'true' || isPublished === true;
-
-    const blog = new blogModel({
+    const blog = await BlogModel.create({
       title,
       slug: generateSlug(title),
       description,
-      author,
+      author: req.user?.id, // Use user id from auth middleware
       content,
-      isPublished: isPublishedBool, // Use converted boolean
+      isPublished: isPublishedBool,
       image: imageUrl,
       createdAt: new Date(),
     });
-
-    await blog.save();
-
     ResponseService({
       res,
       data: blog,
@@ -101,7 +89,7 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
       status: 201,
     });
   } catch (error) {
-    console.error('Create blog error:', error); // Add this for debugging
+    console.error('Create blog error:', error);
     ResponseService({
       res,
       status: 500,
@@ -110,30 +98,25 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
     });
   }
 };
-
 
 export const updateBlog = async (req: Request, res: Response) => {
   try {
     const updateData: any = { ...req.body, updatedAt: new Date() };
-
     // Convert string 'true'/'false' to boolean if isPublished is provided
     if (updateData.isPublished !== undefined) {
       updateData.isPublished = updateData.isPublished === 'true' || updateData.isPublished === true;
     }
-
     if (updateData.title) {
       updateData.slug = generateSlug(updateData.title);
     }
-
     if (req.file) {
-      updateData.image = await uploadFile(req.file); // Replace image with new upload
+      updateData.image = await uploadFile(req.file);
     }
-
-    const blog = await blogModel.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
+    const [affectedRows, [updatedBlog]] = await BlogModel.update(updateData, {
+      where: { id: req.params.id },
+      returning: true,
     });
-
-    if (!blog) {
+    if (!updatedBlog) {
       return ResponseService({
         res,
         status: 404,
@@ -141,14 +124,13 @@ export const updateBlog = async (req: Request, res: Response) => {
         message: 'Blog not found',
       });
     }
-
     ResponseService({
       res,
-      data: blog,
+      data: updatedBlog,
       message: 'Blog updated successfully',
     });
   } catch (error) {
-    console.error('Update blog error:', error); // Add this for debugging
+    console.error('Update blog error:', error);
     ResponseService({
       res,
       status: 500,
@@ -158,15 +140,12 @@ export const updateBlog = async (req: Request, res: Response) => {
   }
 };
 
-
 export const deleteBlog = async (req: Request, res: Response) => {
   try {
-    const blog = await blogModel.findByIdAndUpdate(
-      req.params.id,
+    const [affectedRows, [blog]] = await BlogModel.update(
       { deletedAt: new Date() },
-      { new: true }
+      { where: { id: req.params.id }, returning: true }
     );
-
     if (!blog) {
       return ResponseService({
         res,
@@ -175,7 +154,6 @@ export const deleteBlog = async (req: Request, res: Response) => {
         message: 'Blog not found',
       });
     }
-
     ResponseService({
       res,
       data: blog,
@@ -194,7 +172,6 @@ export const deleteBlog = async (req: Request, res: Response) => {
 export const hardDeleteBlog = async (req: Request, res: Response) => {
   try {
     const { id } = req.body;
-
     if (!id) {
       return ResponseService({
         res,
@@ -203,9 +180,7 @@ export const hardDeleteBlog = async (req: Request, res: Response) => {
         message: 'Blog id is required in request body',
       });
     }
-
-    const deleted = await blogModel.findByIdAndDelete(id);
-
+    const deleted = await BlogModel.destroy({ where: { id } });
     if (!deleted) {
       return ResponseService({
         res,
@@ -214,7 +189,6 @@ export const hardDeleteBlog = async (req: Request, res: Response) => {
         message: 'Blog not found',
       });
     }
-
     ResponseService({
       res,
       message: 'Blog permanently deleted successfully',
