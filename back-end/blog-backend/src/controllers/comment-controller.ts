@@ -1,17 +1,18 @@
 import { Request, Response } from 'express';
-import { CommentModel } from '../models/comment-model';
-import { blogModel } from '../models/blog-model';
+import { CommentModel, CommentAttributes } from '../models/comment-model';
+import { BlogModel } from '../models/blog-model';
+import { UserModel } from '../models/user-model';
 import { ResponseService } from '../utils/response';
 import { IRequestUser } from '../middlewares/protect';
 
 export const createComment = async (req: IRequestUser, res: Response) => {
   try {
     const { blogId } = req.params;
-    const userId = req.user?._id; // from auth middleware
+    const userId = req.user?.id; // from auth middleware
     const { content } = req.body;
 
     // Check blog exists
-    const blog = await blogModel.findById(blogId);
+    const blog = await BlogModel.findByPk(blogId);
     if (!blog) {
       return ResponseService({
         res,
@@ -22,13 +23,11 @@ export const createComment = async (req: IRequestUser, res: Response) => {
     }
 
     // Create comment
-    const comment = new CommentModel({
-      blog: blogId,
+    const comment = await CommentModel.create({
+      blog: Number(blogId),
       user: userId,
       content,
     });
-
-    await comment.save();
 
     ResponseService({
       res,
@@ -50,8 +49,11 @@ export const getCommentsForBlog = async (req: Request, res: Response) => {
   try {
     const { blogId } = req.params;
 
-    // Find comments for blog with user info (populate)
-    const comments = await CommentModel.find({ blog: blogId }).populate('user', 'name email');
+    // Find comments for blog with user info (include)
+    const comments = await CommentModel.findAll({
+      where: { blog: blogId },
+      include: [{ model: UserModel, attributes: ['name', 'email'] }],
+    });
 
     ResponseService({
       res,
