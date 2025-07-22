@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UserModel } from '../models/user-model';
+import { UserModel, UserAttributes } from '../models/user-model';
 import { hashPassword } from '../utils/password';
 import { ResponseService } from '../utils/response';
 import { comparePassword } from '../utils/password';
@@ -10,7 +10,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password, gender } = req.body;
 
     // Check if email already exists
-    const existingUser = await UserModel.findOne({ email });
+    const existingUser = await UserModel.findOne({ where: { email } });
     if (existingUser) {
       return ResponseService({
         res,
@@ -22,7 +22,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const hashed = await hashPassword(password);
 
-    const newUser = new UserModel({
+    const newUser = await UserModel.create({
       name,
       email,
       password: hashed,
@@ -30,14 +30,12 @@ export const registerUser = async (req: Request, res: Response) => {
       isActive: true,
     });
 
-    await newUser.save();
-
     ResponseService({
       res,
       status: 201,
       message: 'User registered successfully',
       data: {
-        id: newUser._id,
+        id: newUser.id,
         email: newUser.email,
         name: newUser.name,
       },
@@ -56,7 +54,7 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ where: { email } });
     if (!user) {
       return ResponseService({
         res,
@@ -77,10 +75,10 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const token = generateToken({
-    _id: user._id.toString(),
-    email: user.email,
-    role: user.role, 
-  });
+      _id: user.id.toString(),
+      email: user.email,
+      role: user.role,
+    });
 
     ResponseService({
       res,
@@ -88,7 +86,7 @@ export const loginUser = async (req: Request, res: Response) => {
       data: {
         token,
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
         },
