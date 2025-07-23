@@ -35,7 +35,7 @@ BlogModel.init(
     slug: DataTypes.STRING,
     description: DataTypes.STRING,
     author: { type: DataTypes.INTEGER, allowNull: false },
-    content: DataTypes.STRING,
+    content: DataTypes.TEXT,
     image: { type: DataTypes.STRING, defaultValue: null },
     isPublished: DataTypes.BOOLEAN,
     createdAt: DataTypes.DATE,
