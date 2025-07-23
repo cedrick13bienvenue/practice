@@ -41,7 +41,7 @@ export const protect = (req: IRequestUser, res: Response, next: NextFunction) =>
       });
     }
 
-    req.user = user
+    req.user = { ...user, id: user._id, _id: user._id };
 
     next();
   } catch (error) {
