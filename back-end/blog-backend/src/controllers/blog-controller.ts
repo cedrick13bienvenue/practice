@@ -72,9 +72,10 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
     }
     // Convert string 'true'/'false' to boolean
     const isPublishedBool = isPublished === 'true' || isPublished === true;
+    const cleanTitle = title?.trim();
     const blog = await BlogModel.create({
-      title,
-      slug: generateSlug(title),
+      title: cleanTitle,
+      slug: generateSlug(cleanTitle),
       description,
       author: req.user?.id, // Use user id from auth middleware
       content,
@@ -107,7 +108,9 @@ export const updateBlog = async (req: Request, res: Response) => {
       updateData.isPublished = updateData.isPublished === 'true' || updateData.isPublished === true;
     }
     if (updateData.title) {
-      updateData.slug = generateSlug(updateData.title);
+      const cleanTitle = updateData.title.trim();
+      updateData.title = cleanTitle;
+      updateData.slug = generateSlug(cleanTitle);
     }
     if (req.file) {
       updateData.image = await uploadFile(req.file);
