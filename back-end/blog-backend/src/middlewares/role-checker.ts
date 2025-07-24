@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { ResponseService } from '../utils/response';
-import { IRequestUser } from './protect';
 
 export const roleChecker = (allowedRoles: string[]) => {
-  return (req: IRequestUser, res: Response, next: NextFunction) => {
-    const user = req.user
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req.user as any);
 
     if (!user || !allowedRoles.includes(user.role)) {
       return ResponseService({
