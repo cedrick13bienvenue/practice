@@ -4,7 +4,6 @@ import { LikeModel } from '../models/like-model';
 import { CommentModel } from '../models/comment-model';
 import { generateSlug } from '../utils/helper';
 import { ResponseService } from '../utils/response';
-import { IRequestUser } from '../middlewares/protect';
 import { uploadFile } from '../utils/upload';
 
 export const getAllBlogs = async (_req: Request, res: Response) => {
@@ -63,7 +62,7 @@ export const getABlog = async (req: Request, res: Response) => {
   }
 };
 
-export const createBlog = async (req: IRequestUser, res: Response) => {
+export const createBlog = async (req: Request, res: Response) => {
   try {
     const { title, description, content, isPublished } = req.body;
     let imageUrl = '';
@@ -77,7 +76,7 @@ export const createBlog = async (req: IRequestUser, res: Response) => {
       title: cleanTitle,
       slug: generateSlug(cleanTitle),
       description,
-      author: req.user?.id, // Use user id from auth middleware
+      author: (req.user as any)?.id, // Use user id from session
       content,
       isPublished: isPublishedBool,
       image: imageUrl,
