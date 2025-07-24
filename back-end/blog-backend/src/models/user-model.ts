@@ -22,6 +22,8 @@ export interface UserAttributes {
   role?: Role;
   createdAt?: Date;
   updatedAt?: Date;
+  googleId?: string;
+  photo?: string;
 }
 
 export class UserModel extends Model<UserAttributes> implements UserAttributes {
@@ -32,6 +34,8 @@ export class UserModel extends Model<UserAttributes> implements UserAttributes {
   public isActive!: boolean;
   public gender!: Gender;
   public role!: Role;
+  public googleId!: string;
+  public photo!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -44,6 +48,8 @@ UserModel.init(
     isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
     gender: { type: DataTypes.ENUM(...Object.values(Gender)), allowNull: false },
     role: { type: DataTypes.ENUM(...Object.values(Role)), defaultValue: Role.User },
+    googleId: { type: DataTypes.STRING, unique: true, allowNull: true },
+    photo: { type: DataTypes.STRING, allowNull: true },
   },
   {
     sequelize,
