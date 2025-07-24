@@ -3,12 +3,12 @@ import { CommentModel, CommentAttributes } from '../models/comment-model';
 import { BlogModel } from '../models/blog-model';
 import { UserModel } from '../models/user-model';
 import { ResponseService } from '../utils/response';
-import { IRequestUser } from '../middlewares/protect';
+// Removed: import { IRequestUser } from '../middlewares/protect';
 
-export const createComment = async (req: IRequestUser, res: Response) => {
+export const createComment = async (req: Request, res: Response) => {
   try {
     const { blogId } = req.params;
-    const userId = req.user?.id; // from auth middleware
+    const userId = (req.user as any)?.id; // from session
     const { content } = req.body;
 
     // Check blog exists
