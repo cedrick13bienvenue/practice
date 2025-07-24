@@ -23,6 +23,7 @@ app.use('/api', blogRouter);
 app.use('/api/auth', authRouter);
 app.use('/api', commentRouter);
 app.use('/api', likeRouter);
+app.use(authRouter);
 
 // Root route
 app.get('/', (_req, res) => {
