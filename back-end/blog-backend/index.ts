@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import './src/middlewares/google-auth'; // Register Google OAuth2 strategy
 import { connectDB } from './src/config/db';
 import { blogRouter } from './src/routes/blog-routes';
 import authRouter from './src/routes/auth-routes';
