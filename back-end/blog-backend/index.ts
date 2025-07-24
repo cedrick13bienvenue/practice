@@ -7,6 +7,7 @@ import authRouter from './src/routes/auth-routes';
 import { commentRouter } from './src/routes/comment-routes';
 import { likeRouter } from './src/routes/like-routes';
 import { syncModels } from './src/models';
+import { ensureAuthenticated } from './src/middlewares/auth';
 
 dotenv.config();
 
@@ -26,6 +27,10 @@ app.use('/api', likeRouter);
 // Root route
 app.get('/', (_req, res) => {
   res.send('📝 Blog API');
+});
+
+app.get('/dashboard', ensureAuthenticated, (req, res) => {
+  res.json({ user: req.user });
 });
 
 (async () => {
