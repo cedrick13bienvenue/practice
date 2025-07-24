@@ -2,6 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import { registerUser, loginUser } from '../controllers/auth-controller';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
+import { blacklistedSessions } from '../middlewares/session-blacklist';
 
 const authRouter = Router();
 
@@ -28,5 +29,19 @@ authRouter.get(
     res.redirect('/dashboard');
   }
 );
+
+// Logout route with session blacklisting
+authRouter.get('/logout', (req, res) => {
+  if (req.session) {
+    blacklistedSessions.add(req.sessionID);
+    req.logout(() => {
+      req.session?.destroy(() => {
+        res.send('Logged out');
+      });
+    });
+  } else {
+    res.send('No session');
+  }
+});
 
 export default authRouter;
