@@ -3,12 +3,12 @@ import { LikeModel, LikeAttributes } from '../models/like-model';
 import { BlogModel } from '../models/blog-model';
 import { UserModel } from '../models/user-model';
 import { ResponseService } from '../utils/response';
-import { IRequestUser } from '../middlewares/protect';
+// Removed: import { IRequestUser } from '../middlewares/protect';
 
-export const toggleLike = async (req: IRequestUser, res: Response) => {
+export const toggleLike = async (req: Request, res: Response) => {
   try {
     const { blogId } = req.params;
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
 
     // Check if blog exists
     const blog = await BlogModel.findByPk(blogId);
