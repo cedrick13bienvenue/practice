@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import './src/middlewares/google-auth'; // Register Google OAuth2 strategy
+import session from 'express-session';
+import passport from 'passport';
 import { connectDB } from './src/config/db';
 import { blogRouter } from './src/routes/blog-routes';
 import authRouter from './src/routes/auth-routes';
@@ -18,6 +20,17 @@ const PORT = process.env.PORT || 5500;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Session middleware (must come before passport)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }, // set to true if using HTTPS
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api', blogRouter);
