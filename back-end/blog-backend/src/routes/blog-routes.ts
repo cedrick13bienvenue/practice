@@ -15,13 +15,19 @@ import { upload } from '../utils/upload';
 
 /**
  * @swagger
+ * tags:
+ *   - name: Blog
+ *     description: Blog CRUD routes
+ *
  * /blogs:
  *   get:
+ *     tags: [Blog]
  *     summary: Get all blogs
  *     responses:
  *       200:
  *         description: List of blogs
  *   post:
+ *     tags: [Blog]
  *     summary: Create a new blog (admin only)
  *     responses:
  *       201:
@@ -29,6 +35,7 @@ import { upload } from '../utils/upload';
  *
  * /blogs/{id}:
  *   get:
+ *     tags: [Blog]
  *     summary: Get a blog by ID
  *     parameters:
  *       - in: path
@@ -40,6 +47,7 @@ import { upload } from '../utils/upload';
  *       200:
  *         description: Blog found
  *   put:
+ *     tags: [Blog]
  *     summary: Update a blog (admin only)
  *     parameters:
  *       - in: path
@@ -51,6 +59,7 @@ import { upload } from '../utils/upload';
  *       200:
  *         description: Blog updated
  *   delete:
+ *     tags: [Blog]
  *     summary: Soft delete a blog (admin only)
  *     parameters:
  *       - in: path
@@ -64,6 +73,7 @@ import { upload } from '../utils/upload';
  *
  * /blogs/hard-delete:
  *   delete:
+ *     tags: [Blog]
  *     summary: Hard delete a blog (admin only)
  *     requestBody:
  *       required: true
