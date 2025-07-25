@@ -11,6 +11,7 @@ import { commentRouter } from './src/routes/comment-routes';
 import { likeRouter } from './src/routes/like-routes';
 import { syncModels } from './src/models';
 import { ensureAuthenticated } from './src/middlewares/auth';
+import { swaggerSpec, swaggerUi } from './src/swagger';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/auth', authRouter);
 app.use('/api', commentRouter);
 app.use('/api', likeRouter);
 app.use(authRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Root route
 app.get('/', (_req, res) => {
