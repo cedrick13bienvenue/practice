@@ -75,10 +75,11 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const token = generateToken({
-      _id: user.id.toString(),
-    email: user.email,
-    role: user.role, 
-  });
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
 
     ResponseService({
       res,
