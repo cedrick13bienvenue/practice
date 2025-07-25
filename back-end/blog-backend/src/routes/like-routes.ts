@@ -8,8 +8,13 @@ export const likeRouter = Router();
 
 /**
  * @swagger
+ * tags:
+ *   - name: Like
+ *     description: Blog like routes
+ *
  * /blogs/{blogId}/like:
  *   post:
+ *     tags: [Like]
  *     summary: Like or unlike a blog (user only)
  *     parameters:
  *       - in: path
@@ -23,6 +28,7 @@ export const likeRouter = Router();
  *
  * /blogs/{blogId}/likes:
  *   get:
+ *     tags: [Like]
  *     summary: Get likes for a blog
  *     parameters:
  *       - in: path
