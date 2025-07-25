@@ -6,26 +6,9 @@ import { blacklistedSessions } from '../middlewares/session-blacklist';
 
 const authRouter = Router();
 
-/**
- * @swagger
- * /auth/google:
- *   get:
- *     summary: Start Google OAuth2 login
- *     responses:
- *       302:
- *         description: Redirects to Google login
- */
+// Removed Swagger comments for /auth/google and /auth/google/callback
 authRouter.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-/**
- * @swagger
- * /auth/google/callback:
- *   get:
- *     summary: Google OAuth2 callback
- *     responses:
- *       302:
- *         description: Redirects to dashboard after successful login
- */
 // Google OAuth2 callback route
 authRouter.get(
   '/auth/google/callback',
