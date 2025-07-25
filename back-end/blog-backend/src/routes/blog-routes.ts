@@ -62,7 +62,7 @@ import { upload } from '../utils/upload';
  *       200:
  *         description: Blog soft-deleted
  *
- * /blogs:
+ * /blogs/hard-delete:
  *   delete:
  *     summary: Hard delete a blog (admin only)
  *     requestBody:
@@ -111,7 +111,7 @@ blogRouter.delete(
 );
 
 blogRouter.delete(
-  '/blogs',
+  '/blogs/hard-delete',
   ensureAuthenticated,
   roleChecker(['admin']),
   hardDeleteBlog
