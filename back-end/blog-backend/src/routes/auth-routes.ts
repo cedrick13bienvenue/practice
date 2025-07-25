@@ -86,15 +86,19 @@ authRouter.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
+    const user = req.user as any;
+    if (!user) {
+      return res.status(401).json({ message: 'User not found after Google login' });
+    }
     // Generate JWT token for the user
     const token = generateToken({
-      id: req.user.id,
-      email: req.user.email,
-      role: req.user.role,
-      name: req.user.name,
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
     });
     // Respond with token and user info
-    res.json({ token, user: req.user });
+    res.json({ token, user });
   }
 );
 
