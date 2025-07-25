@@ -18,15 +18,6 @@ authRouter.get(
   }
 );
 
-/**
- * @swagger
- * /logout:
- *   get:
- *     summary: Logout and blacklist session
- *     responses:
- *       200:
- *         description: Logged out
- */
 // Logout route with session blacklisting
 authRouter.get('/logout', (req, res) => {
   if (req.session) {
