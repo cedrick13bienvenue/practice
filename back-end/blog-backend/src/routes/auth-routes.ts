@@ -118,6 +118,21 @@ authRouter.get('/logout', (req, res) => {
 
 /**
  * @swagger
+ * /logout:
+ *   get:
+ *     summary: Logout user and blacklist session/token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
  * /register:
  *   post:
  *     summary: Register a new user

@@ -29,9 +29,13 @@ import { upload } from '../utils/upload';
  *   post:
  *     tags: [Blog]
  *     summary: Create a new blog (admin only)
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       201:
  *         description: Blog created
+ *       401:
+ *         description: Unauthorized
  *
  * /blogs/{id}:
  *   get:
@@ -55,9 +59,13 @@ import { upload } from '../utils/upload';
  *         required: true
  *         schema:
  *           type: string
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Blog updated
+ *       401:
+ *         description: Unauthorized
  *   delete:
  *     tags: [Blog]
  *     summary: Soft delete a blog (admin only)
@@ -67,9 +75,13 @@ import { upload } from '../utils/upload';
  *         required: true
  *         schema:
  *           type: string
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Blog soft-deleted
+ *       401:
+ *         description: Unauthorized
  *
  * /blogs/hard-delete:
  *   delete:
