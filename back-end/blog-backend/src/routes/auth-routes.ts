@@ -3,6 +3,7 @@ import passport from 'passport';
 import { registerUser, loginUser } from '../controllers/auth-controller';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 import { blacklistedSessions } from '../middlewares/session-blacklist';
+import { generateToken } from '../utils/jwt';
 
 const authRouter = Router();
 
@@ -85,7 +86,15 @@ authRouter.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/dashboard');
+    // Generate JWT token for the user
+    const token = generateToken({
+      id: req.user.id,
+      email: req.user.email,
+      role: req.user.role,
+      name: req.user.name,
+    });
+    // Respond with token and user info
+    res.json({ token, user: req.user });
   }
 );
 
