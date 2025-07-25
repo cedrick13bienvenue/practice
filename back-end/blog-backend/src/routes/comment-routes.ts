@@ -8,8 +8,13 @@ export const commentRouter = Router();
 
 /**
  * @swagger
+ * tags:
+ *   - name: Comment
+ *     description: Blog comment routes
+ *
  * /blogs/{blogId}/comments:
  *   post:
+ *     tags: [Comment]
  *     summary: Add a comment to a blog (user only)
  *     parameters:
  *       - in: path
@@ -21,6 +26,7 @@ export const commentRouter = Router();
  *       201:
  *         description: Comment added
  *   get:
+ *     tags: [Comment]
  *     summary: Get comments for a blog
  *     parameters:
  *       - in: path
