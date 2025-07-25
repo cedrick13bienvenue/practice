@@ -6,6 +6,32 @@ import { ValidationMiddleware } from '../middlewares/validate-blog';
 
 export const commentRouter = Router();
 
+/**
+ * @swagger
+ * /blogs/{blogId}/comments:
+ *   post:
+ *     summary: Add a comment to a blog (user only)
+ *     parameters:
+ *       - in: path
+ *         name: blogId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Comment added
+ *   get:
+ *     summary: Get comments for a blog
+ *     parameters:
+ *       - in: path
+ *         name: blogId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of comments
+ */
 commentRouter.post(
   '/blogs/:blogId/comments',
   ensureAuthenticated,
