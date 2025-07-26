@@ -90,15 +90,17 @@ authRouter.get(
     if (!user) {
       return res.status(401).json({ message: 'User not found after Google login' });
     }
-    // Generate JWT token for the user
     const token = generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
       name: user.name,
     });
-    // Respond with token and user info
-    res.json({ token, user });
+    res.json({
+      success: true,
+      message: 'Google login successful',
+      token
+    });
   }
 );
 
