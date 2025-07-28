@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { toggleLike, getBlogLikes } from '../controllers/like-controller';
-import { ensureAuthenticated } from '../middlewares/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { roleChecker } from '../middlewares/role-checker';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 
@@ -16,6 +16,8 @@ export const likeRouter = Router();
  *   post:
  *     tags: [Like]
  *     summary: Like or unlike a blog (user only)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: blogId
@@ -25,6 +27,8 @@ export const likeRouter = Router();
  *     responses:
  *       200:
  *         description: Like toggled
+ *       401:
+ *         description: Unauthorized
  *
  * /blogs/{blogId}/likes:
  *   get:
@@ -42,7 +46,7 @@ export const likeRouter = Router();
  */
 likeRouter.post(
   '/blogs/:blogId/like',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['user']),
   toggleLike
 );
