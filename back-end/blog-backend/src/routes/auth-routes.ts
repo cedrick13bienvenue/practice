@@ -81,10 +81,60 @@ const authRouter = Router();
  */
 authRouter.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+// Check authentication status
+authRouter.get('/auth/status', (req, res) => {
+  if (req.isAuthenticated()) {
+    const user = req.user as any;
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+    return res.json({
+      success: true,
+      authenticated: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      token
+    });
+  }
+  res.json({
+    success: false,
+    authenticated: false,
+    message: 'Not authenticated'
+  });
+});
+
 // Google OAuth2 callback route
 authRouter.get(
   '/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res, next) => {
+    // Check if user is already authenticated (prevents refresh issues)
+    if (req.isAuthenticated()) {
+      const user = req.user as any;
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      });
+      return res.json({
+        success: true,
+        message: 'Already authenticated',
+        token
+      });
+    }
+    next();
+  },
+  passport.authenticate('google', { 
+    failureRedirect: '/auth/google/failure',
+    failureFlash: true 
+  }),
   (req, res) => {
     const user = req.user as any;
     if (!user) {
@@ -103,6 +153,14 @@ authRouter.get(
     });
   }
 );
+
+// OAuth2 failure route
+authRouter.get('/auth/google/failure', (req, res) => {
+  res.status(400).json({
+    success: false,
+    message: 'Google OAuth2 authentication failed. Please try again.'
+  });
+});
 
 // Logout route with session blacklisting
 authRouter.get('/logout', (req, res) => {
