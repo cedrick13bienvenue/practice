@@ -8,7 +8,7 @@ import {
   hardDeleteBlog
 } from '../controllers/blog-controller';
 
-import { ensureAuthenticated } from '../middlewares/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { roleChecker } from '../middlewares/role-checker';
 
 import { upload } from '../utils/upload'; 
@@ -111,7 +111,7 @@ blogRouter.get(
 
 blogRouter.post(
   '/blogs',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['admin']),
   upload.single('image'), 
   createBlog
@@ -119,7 +119,7 @@ blogRouter.post(
 
 blogRouter.put(
   '/blogs/:id',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['admin']),
   upload.single('image'), 
   updateBlog
@@ -127,14 +127,14 @@ blogRouter.put(
 
 blogRouter.delete(
   '/blogs/:id',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['admin']),
   deleteBlog
 );
 
 blogRouter.delete(
   '/blogs/hard-delete',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['admin']),
   hardDeleteBlog
 );
