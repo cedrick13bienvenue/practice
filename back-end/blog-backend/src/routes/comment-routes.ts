@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createComment, getCommentsForBlog } from '../controllers/comment-controller';
-import { ensureAuthenticated } from '../middlewares/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { roleChecker } from '../middlewares/role-checker';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 
@@ -16,6 +16,8 @@ export const commentRouter = Router();
  *   post:
  *     tags: [Comment]
  *     summary: Add a comment to a blog (user only)
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: blogId
@@ -25,6 +27,8 @@ export const commentRouter = Router();
  *     responses:
  *       201:
  *         description: Comment added
+ *       401:
+ *         description: Unauthorized
  *   get:
  *     tags: [Comment]
  *     summary: Get comments for a blog
@@ -40,7 +44,7 @@ export const commentRouter = Router();
  */
 commentRouter.post(
   '/blogs/:blogId/comments',
-  ensureAuthenticated,
+  authenticateToken,
   roleChecker(['user']),
   createComment
 );
