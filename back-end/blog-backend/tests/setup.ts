@@ -12,6 +12,7 @@ import { commentRouter } from '../src/routes/comment-routes';
 import { likeRouter } from '../src/routes/like-routes';
 import { ensureAuthenticated } from '../src/middlewares/auth';
 import { swaggerSpec, swaggerUi } from '../src/swagger';
+import config from '../config/config';
 
 dotenv.config();
 
@@ -39,7 +40,6 @@ app.use('/api', blogRouter);
 app.use('/api/auth', authRouter);
 app.use('/api', commentRouter);
 app.use('/api', likeRouter);
-app.use(authRouter);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -54,15 +54,7 @@ app.get('/dashboard', ensureAuthenticated, (req, res) => {
 });
 
 // Test database configuration
-const testDbConfig = {
-  username: process.env.TEST_USERNAME || 'postgres',
-  password: process.env.TEST_PASSWORD || 'cedrique13',
-  database: process.env.TEST_DATABASE || 'blogAPI-Test',
-  host: process.env.TEST_HOST || 'localhost',
-  port: parseInt(process.env.TEST_PORT || '5432'), // Use main PostgreSQL port
-  dialect: 'postgres' as const,
-  logging: false, // Disable logging in tests
-};
+const testDbConfig = config.test;
 
 let sequelize: Sequelize;
 
@@ -79,7 +71,8 @@ const isIntegrationTest = process.argv.some(arg =>
   arg.includes('auth-test') || 
   arg.includes('blog-test') || 
   arg.includes('comment-test') || 
-  arg.includes('like-test')
+  arg.includes('like-test') ||
+  arg.includes('user-test')
 );
 
 if (isIntegrationTest) {
@@ -87,13 +80,8 @@ if (isIntegrationTest) {
     try {
       // Connect to test database
       sequelize = new Sequelize({
-        username: 'postgres',
-        password: 'cedrique13',
-        database: 'blogAPI-Test',
-        host: 'localhost',
-        port: 5432,
+        ...testDbConfig,
         dialect: 'postgres',
-        logging: false,
       });
       
       await sequelize.authenticate();
