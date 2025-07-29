@@ -50,10 +50,16 @@ app.get('/dashboard', ensureAuthenticated, (req, res) => {
   res.json({ user: req.user });
 });
 
-(async () => {
-  await connectDB();
-  await syncModels();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-})();
+// Export app for testing
+export { app };
+
+// Start server only if this file is run directly
+if (require.main === module) {
+  (async () => {
+    await connectDB();
+    await syncModels();
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })();
+}
