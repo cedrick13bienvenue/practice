@@ -7,7 +7,7 @@ import { generateToken } from '../utils/jwt';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, gender } = req.body;
+    const { name, email, password, gender, role } = req.body;
 
     // Check if email already exists
     const existingUser = await UserModel.findOne({ where: { email } });
@@ -27,6 +27,7 @@ export const registerUser = async (req: Request, res: Response) => {
       email,
       password: hashed,
       gender,
+      role: role || 'user', // Use provided role or default to 'user'
       isActive: true,
     });
 
