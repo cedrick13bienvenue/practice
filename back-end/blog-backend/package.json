@@ -7,7 +7,13 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:verbose": "jest --verbose",
-    "dev": "nodemon --watch './' --ext ts --exec ts-node index.ts"
+    "dev": "nodemon --watch './' --ext ts --exec ts-node index.ts",
+    "migration": "sequelize-cli db:migrate",
+    "undo-migration": "sequelize-cli db:migrate:undo:all",
+    "seed": "sequelize-cli db:seed:all",
+    "migration:test": "NODE_ENV=test sequelize-cli db:migrate",
+    "undo-migration:test": "NODE_ENV=test sequelize-cli db:migrate:undo:all",
+    "seed:test": "NODE_ENV=test sequelize-cli db:seed:all"
   },
   "keywords": [],
   "author": "",
