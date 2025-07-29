@@ -4,6 +4,8 @@ import { registerUser, loginUser } from '../controllers/auth-controller';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 import { blacklistedSessions } from '../middlewares/session-blacklist';
 import { generateToken } from '../utils/jwt';
+import { authenticateToken } from '../middlewares/auth';
+import { ResponseService } from '../utils/response';
 
 const authRouter = Router();
 
@@ -245,6 +247,57 @@ authRouter.post(
   '/login',
   // ValidationMiddleware({ type: 'body', schema: LoginUserSchema }),
   loginUser
+);
+
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+authRouter.get(
+  '/profile',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (!user) {
+        return ResponseService({
+          res,
+          status: 401,
+          success: false,
+          message: 'Unauthorized',
+        });
+      }
+
+      ResponseService({
+        res,
+        message: 'Profile retrieved successfully',
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          gender: user.gender,
+        },
+      });
+    } catch (error) {
+      ResponseService({
+        res,
+        status: 500,
+        success: false,
+        message: (error as Error).message,
+      });
+    }
+  }
 );
 
 export default authRouter;
