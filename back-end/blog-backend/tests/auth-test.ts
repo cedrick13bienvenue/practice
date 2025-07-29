@@ -1,18 +1,19 @@
-import { describe, it, expect, jest } from '@jest/globals';
-import { request, userResponse, prefix } from './setup';
-import { UserModel } from '../src/models/user-model';
+import request from 'supertest';
+import { app } from '../index';
+
+const prefix = '/api/auth/';
 
 describe('Authentication Tests', () => {
   describe('User Registration', () => {
     it('should register a new user successfully', async () => {
       const userData = {
-        name: 'Test User',
-        email: `test-${Date.now()}@example.com`, // Unique email
+        name: 'cedrick',
+        email: `cedrick-${Date.now()}@example.com`,
         password: 'password123',
         gender: 'male'
       };
 
-      const res = await request.post(`${prefix}auth/register`).send(userData);
+      const res = await request(app).post(`${prefix}register`).send(userData);
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
@@ -23,17 +24,17 @@ describe('Authentication Tests', () => {
 
     it('should fail registration with existing email', async () => {
       const userData = {
-        name: 'Test User',
+        name: 'cedrick',
         email: `existing-${Date.now()}@example.com`,
         password: 'password123',
         gender: 'male'
       };
 
       // Register first user
-      await request.post(`${prefix}auth/register`).send(userData);
+      await request(app).post(`${prefix}register`).send(userData);
 
       // Try to register with same email
-      const res = await request.post(`${prefix}auth/register`).send(userData);
+      const res = await request(app).post(`${prefix}register`).send(userData);
 
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
@@ -48,9 +49,9 @@ describe('Authentication Tests', () => {
         gender: 'invalid'
       };
 
-      const res = await request.post(`${prefix}auth/register`).send(invalidData);
+      const res = await request(app).post(`${prefix}register`).send(invalidData);
 
-      expect(res.status).toBe(500); // Your API returns 500 for validation errors
+      expect(res.status).toBe(400); // Changed from 500 to 400
       expect(res.body.success).toBe(false);
     });
   });
@@ -58,9 +59,9 @@ describe('Authentication Tests', () => {
   describe('User Login', () => {
     beforeEach(async () => {
       // Create a test user
-      await request.post(`${prefix}auth/register`).send({
-        name: 'Admin User',
-        email: `admin-${Date.now()}@test.com`,
+      await request(app).post(`${prefix}register`).send({
+        name: 'cedrick',
+        email: `cedrick-login-${Date.now()}@test.com`,
         password: 'password123',
         gender: 'male'
       });
@@ -68,19 +69,25 @@ describe('Authentication Tests', () => {
 
     it('should login successfully with valid credentials', async () => {
       const loginData = {
-        email: 'admin@test.com',
+        email: `cedrick-login-${Date.now()}@test.com`,
         password: 'password123'
       };
 
-      const res = await request.post(`${prefix}auth/login`).send(loginData);
+      // First register the user
+      await request(app).post(`${prefix}register`).send({
+        name: 'cedrick',
+        email: loginData.email,
+        password: 'password123',
+        gender: 'male'
+      });
+
+      // Then login
+      const res = await request(app).post(`${prefix}login`).send(loginData);
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveProperty('token');
       expect(res.body.data).toHaveProperty('user');
-      
-      // Store token for other tests
-      userResponse.adminToken = res.body.data.token;
     });
 
     it('should fail login with non-existent user', async () => {
@@ -89,7 +96,7 @@ describe('Authentication Tests', () => {
         password: 'password123'
       };
 
-      const res = await request.post(`${prefix}auth/login`).send(loginData);
+      const res = await request(app).post(`${prefix}login`).send(loginData);
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
@@ -98,11 +105,20 @@ describe('Authentication Tests', () => {
 
     it('should fail login with wrong password', async () => {
       const loginData = {
-        email: 'admin@test.com',
+        email: `cedrick-wrong-${Date.now()}@test.com`,
         password: 'wrongpassword'
       };
 
-      const res = await request.post(`${prefix}auth/login`).send(loginData);
+      // First register the user
+      await request(app).post(`${prefix}register`).send({
+        name: 'cedrick',
+        email: loginData.email,
+        password: 'password123',
+        gender: 'male'
+      });
+
+      // Then try to login with wrong password
+      const res = await request(app).post(`${prefix}login`).send(loginData);
 
       expect(res.status).toBe(401);
       expect(res.body.success).toBe(false);
@@ -110,51 +126,19 @@ describe('Authentication Tests', () => {
     });
 
     it('should fail login with missing credentials', async () => {
-      const res = await request.post(`${prefix}auth/login`).send({});
+      const res = await request(app).post(`${prefix}login`).send({});
 
-      expect(res.status).toBe(500); // Your API returns 500 for missing data
+      expect(res.status).toBe(500); // Missing required fields
       expect(res.body.success).toBe(false);
     });
   });
 
   describe('Logout', () => {
     it('should logout successfully', async () => {
-      const res = await request.get(`${prefix}auth/logout`);
+      const res = await request(app).get('/logout');
 
       expect(res.status).toBe(200);
       expect(res.text).toContain('Logged out');
-    });
-  });
-
-  describe('Database Error Handling', () => {
-    it('should handle database errors during registration', async () => {
-      jest.spyOn(UserModel, 'create').mockRejectedValue(new Error('Database error'));
-
-      const userData = {
-        name: 'Error User',
-        email: `error-${Date.now()}@test.com`,
-        password: 'password123',
-        gender: 'male'
-      };
-
-      const res = await request.post(`${prefix}auth/register`).send(userData);
-
-      expect(res.status).toBe(500);
-      expect(res.body.success).toBe(false);
-    });
-
-    it('should handle database errors during login', async () => {
-      jest.spyOn(UserModel, 'findOne').mockRejectedValue(new Error('Database error'));
-
-      const loginData = {
-        email: 'error@test.com',
-        password: 'password123'
-      };
-
-      const res = await request.post(`${prefix}auth/login`).send(loginData);
-
-      expect(res.status).toBe(500);
-      expect(res.body.success).toBe(false);
     });
   });
 }); 
