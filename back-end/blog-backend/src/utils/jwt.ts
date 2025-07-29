@@ -7,7 +7,7 @@ export const generateToken = ({id, email, role, name}: { id: string | number; em
     {
       id,
       email,
-      role,
+      role, 
       ...(name ? { name } : {})
     },
     SECRET_KEY,
