@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { NewsletterSubscriberModel } from '../models/newsletter-subscriber-model';
 import { ResponseService } from '../utils/response';
+import { sendSubscriptionConfirmation, sendUnsubscribeConfirmation } from '../utils/email';
 
 // Subscribe to newsletter
 export const subscribeToNewsletter = async (req: Request, res: Response) => {
@@ -67,6 +68,15 @@ export const subscribeToNewsletter = async (req: Request, res: Response) => {
       subscribedAt: new Date(),
     });
 
+    // Send confirmation email
+    try {
+      await sendSubscriptionConfirmation(email, newSubscriber);
+      console.log('📧 Subscription confirmation email sent to:', email);
+    } catch (error) {
+      console.error('❌ Failed to send subscription confirmation email:', error);
+      // Don't fail the subscription if email fails
+    }
+
     return ResponseService({
       res,
       message: 'Successfully subscribed to newsletter',
@@ -130,6 +140,15 @@ export const unsubscribeFromNewsletter = async (req: Request, res: Response) => 
       unsubscribedAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Send unsubscribe confirmation email
+    try {
+      await sendUnsubscribeConfirmation(email);
+      console.log('📧 Unsubscribe confirmation email sent to:', email);
+    } catch (error) {
+      console.error('❌ Failed to send unsubscribe confirmation email:', error);
+      // Don't fail the unsubscription if email fails
+    }
 
     return ResponseService({
       res,
