@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
-import { NewsletterSubscriberModel } from '../models/newsletter-subscriber-model';
+import { NewsletterService } from '../services/newsletter-service';
 import { ResponseService } from '../utils/response';
-import { sendSubscriptionConfirmation, sendUnsubscribeConfirmation } from '../utils/email';
 
 // Subscribe to newsletter
 export const subscribeToNewsletter = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
-    // Validate email
     if (!email) {
       return ResponseService({
         res,
@@ -18,7 +16,7 @@ export const subscribeToNewsletter = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if email is valid
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return ResponseService({
@@ -29,64 +27,24 @@ export const subscribeToNewsletter = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if already subscribed
-    const existingSubscriber = await NewsletterSubscriberModel.findOne({
-      where: { email: email.toLowerCase() },
-    });
-
-    if (existingSubscriber) {
-      if (existingSubscriber.isActive) {
-        return ResponseService({
-          res,
-          status: 409,
-          success: false,
-          message: 'You are already subscribed to our newsletter',
-        });
-      } else {
-        // Reactivate subscription
-        await existingSubscriber.update({
-          isActive: true,
-          unsubscribedAt: undefined,
-          updatedAt: new Date(),
-        });
-
-        return ResponseService({
-          res,
-          message: 'Welcome back! Your newsletter subscription has been reactivated',
-          data: {
-            email: existingSubscriber.email,
-            subscribedAt: existingSubscriber.subscribedAt,
-          },
-        });
-      }
+    const result = await NewsletterService.subscribe(email);
+    
+    if (result.success) {
+      return ResponseService({
+        res,
+        message: result.message,
+        data: result.data,
+      });
+    } else {
+      return ResponseService({
+        res,
+        status: 400,
+        success: false,
+        message: result.message,
+      });
     }
-
-    // Create new subscription
-    const newSubscriber = await NewsletterSubscriberModel.create({
-      email: email.toLowerCase(),
-      isActive: true,
-      subscribedAt: new Date(),
-    });
-
-    // Send confirmation email
-    try {
-      await sendSubscriptionConfirmation(email, newSubscriber);
-      console.log('📧 Subscription confirmation email sent to:', email);
-    } catch (error) {
-      console.error('❌ Failed to send subscription confirmation email:', error);
-      // Don't fail the subscription if email fails
-    }
-
-    return ResponseService({
-      res,
-      message: 'Successfully subscribed to newsletter',
-      data: {
-        email: newSubscriber.email,
-        subscribedAt: newSubscriber.subscribedAt,
-      },
-    });
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
+    console.error('❌ Newsletter subscription error:', error);
     return ResponseService({
       res,
       status: 500,
@@ -101,7 +59,6 @@ export const unsubscribeFromNewsletter = async (req: Request, res: Response) => 
   try {
     const { email } = req.body;
 
-    // Validate email
     if (!email) {
       return ResponseService({
         res,
@@ -111,55 +68,24 @@ export const unsubscribeFromNewsletter = async (req: Request, res: Response) => 
       });
     }
 
-    // Find subscriber
-    const subscriber = await NewsletterSubscriberModel.findOne({
-      where: { email: email.toLowerCase() },
-    });
-
-    if (!subscriber) {
+    const result = await NewsletterService.unsubscribe(email);
+    
+    if (result.success) {
       return ResponseService({
         res,
-        status: 404,
-        success: false,
-        message: 'Email not found in our newsletter subscribers',
+        message: result.message,
+        data: result.data,
       });
-    }
-
-    if (!subscriber.isActive) {
+    } else {
       return ResponseService({
         res,
-        status: 409,
+        status: 400,
         success: false,
-        message: 'You are already unsubscribed from our newsletter',
+        message: result.message,
       });
     }
-
-    // Unsubscribe
-    await subscriber.update({
-      isActive: false,
-      unsubscribedAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Send unsubscribe confirmation email
-    try {
-      await sendUnsubscribeConfirmation(email);
-      console.log('📧 Unsubscribe confirmation email sent to:', email);
-    } catch (error) {
-      console.error('❌ Failed to send unsubscribe confirmation email:', error);
-      // Don't fail the unsubscription if email fails
-    }
-
-    return ResponseService({
-      res,
-      message: 'Successfully unsubscribed from newsletter',
-      data: {
-        email: subscriber.email,
-        unsubscribedAt: subscriber.unsubscribedAt,
-      },
-    });
   } catch (error) {
-    console.error('Newsletter unsubscription error:', error);
+    console.error('❌ Newsletter unsubscription error:', error);
     return ResponseService({
       res,
       status: 500,
@@ -172,33 +98,19 @@ export const unsubscribeFromNewsletter = async (req: Request, res: Response) => 
 // Get all subscribers (admin only)
 export const getAllSubscribers = async (req: Request, res: Response) => {
   try {
-    const subscribers = await NewsletterSubscriberModel.findAll({
-      order: [['createdAt', 'DESC']],
-    });
-
+    const result = await NewsletterService.getAllSubscribers();
     return ResponseService({
       res,
-      message: 'Subscribers retrieved successfully',
-      data: {
-        total: subscribers.length,
-        active: subscribers.filter(s => s.isActive).length,
-        inactive: subscribers.filter(s => !s.isActive).length,
-        subscribers: subscribers.map(sub => ({
-          id: sub.id,
-          email: sub.email,
-          isActive: sub.isActive,
-          subscribedAt: sub.subscribedAt,
-          unsubscribedAt: sub.unsubscribedAt,
-        })),
-      },
+      message: result.message,
+      data: result.data,
     });
   } catch (error) {
-    console.error('Get subscribers error:', error);
+    console.error('❌ Get subscribers error:', error);
     return ResponseService({
       res,
       status: 500,
       success: false,
-      message: 'Failed to retrieve subscribers',
+      message: 'Failed to get subscribers',
     });
   }
 };
@@ -206,27 +118,19 @@ export const getAllSubscribers = async (req: Request, res: Response) => {
 // Get subscriber count
 export const getSubscriberCount = async (req: Request, res: Response) => {
   try {
-    const totalSubscribers = await NewsletterSubscriberModel.count();
-    const activeSubscribers = await NewsletterSubscriberModel.count({
-      where: { isActive: true },
-    });
-
+    const result = await NewsletterService.getSubscriberCount();
     return ResponseService({
       res,
-      message: 'Subscriber count retrieved successfully',
-      data: {
-        total: totalSubscribers,
-        active: activeSubscribers,
-        inactive: totalSubscribers - activeSubscribers,
-      },
+      message: result.message,
+      data: result.data,
     });
   } catch (error) {
-    console.error('Get subscriber count error:', error);
+    console.error('❌ Get subscriber count error:', error);
     return ResponseService({
       res,
       status: 500,
       success: false,
-      message: 'Failed to retrieve subscriber count',
+      message: 'Failed to get subscriber count',
     });
   }
 }; 
