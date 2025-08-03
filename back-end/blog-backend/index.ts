@@ -13,6 +13,7 @@ import { newsletterRouter } from './src/routes/newsletter-routes';
 import { syncModels } from './src/models';
 import { ensureAuthenticated } from './src/middlewares/auth';
 import { swaggerSpec, swaggerUi } from './src/swagger';
+import { registerEventHandlers } from './src/services/event-service';
 
 dotenv.config();
 
@@ -60,6 +61,10 @@ if (require.main === module) {
   (async () => {
     await connectDB();
     await syncModels();
+    
+    // Register event handlers for newsletter notifications
+    registerEventHandlers();
+    
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
