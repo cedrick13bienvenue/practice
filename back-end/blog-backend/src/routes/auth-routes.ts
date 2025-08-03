@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { registerUser, loginUser } from '../controllers/auth-controller';
+import { registerUser, loginUser, handleGoogleCallback, checkAuthStatus, handleAlreadyAuthenticated, getUserProfile, handleOAuth2Failure, handleLogout } from '../controllers/auth-controller';
 import { ValidationMiddleware } from '../middlewares/validate-blog';
 import { blacklistedSessions } from '../middlewares/session-blacklist';
-import { generateToken } from '../utils/jwt';
-import { authenticateToken } from '../middlewares/auth';
+import { authenticateToken, checkAlreadyAuthenticated } from '../middlewares/auth';
 import { ResponseService } from '../utils/response';
 
 const authRouter = Router();
@@ -84,99 +83,24 @@ const authRouter = Router();
 authRouter.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // Check authentication status
-authRouter.get('/auth/status', (req, res) => {
-  if (req.isAuthenticated()) {
-    const user = req.user as any;
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-    });
-    return res.json({
-      success: true,
-      authenticated: true,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      },
-      token
-    });
-  }
-  res.json({
-    success: false,
-    authenticated: false,
-    message: 'Not authenticated'
-  });
-});
+authRouter.get('/auth/status', checkAuthStatus);
 
 // Google OAuth2 callback route
 authRouter.get(
   '/auth/google/callback',
-  (req, res, next) => {
-    // Check if user is already authenticated (prevents refresh issues)
-    if (req.isAuthenticated()) {
-      const user = req.user as any;
-      const token = generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-      });
-      return res.json({
-        success: true,
-        message: 'Already authenticated',
-        token
-      });
-    }
-    next();
-  },
+  checkAlreadyAuthenticated,
   passport.authenticate('google', { 
     failureRedirect: '/auth/google/failure',
     failureFlash: true 
   }),
-  (req, res) => {
-    const user = req.user as any;
-    if (!user) {
-      return res.status(401).json({ message: 'User not found after Google login' });
-    }
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-    });
-    res.json({
-      success: true,
-      message: 'Google login successful',
-      token
-    });
-  }
+  handleGoogleCallback
 );
 
 // OAuth2 failure route
-authRouter.get('/auth/google/failure', (req, res) => {
-  res.status(400).json({
-    success: false,
-    message: 'Google OAuth2 authentication failed. Please try again.'
-  });
-});
+authRouter.get('/auth/google/failure', handleOAuth2Failure);
 
 // Logout route with session blacklisting
-authRouter.get('/logout', (req, res) => {
-  if (req.session) {
-    blacklistedSessions.add(req.sessionID);
-    req.logout(() => {
-      req.session?.destroy(() => {
-        res.send('Logged out');
-      });
-    });
-  } else {
-    res.send('No session');
-  }
-});
+authRouter.get('/logout', handleLogout);
 
 /**
  * @swagger
@@ -263,41 +187,6 @@ authRouter.post(
  *       401:
  *         description: Unauthorized
  */
-authRouter.get(
-  '/profile',
-  authenticateToken,
-  async (req, res) => {
-    try {
-      const user = req.user as any;
-      if (!user) {
-        return ResponseService({
-          res,
-          status: 401,
-          success: false,
-          message: 'Unauthorized',
-        });
-      }
-
-      ResponseService({
-        res,
-        message: 'Profile retrieved successfully',
-        data: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          gender: user.gender,
-        },
-      });
-    } catch (error) {
-      ResponseService({
-        res,
-        status: 500,
-        success: false,
-        message: (error as Error).message,
-      });
-    }
-  }
-);
+authRouter.get('/profile', authenticateToken, getUserProfile);
 
 export default authRouter;
