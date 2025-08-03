@@ -17,7 +17,7 @@ associateNewsletter(models);
 // Sync models with the database
 export const syncModels = async () => {
   const sequelize = getSequelize();
-  await sequelize.sync({ alter: true }); // Use alter for dev, switch to false for prod
+  await sequelize.sync({ force: false }); // Use force: false to avoid index issues
 };
 
 export { UserModel, BlogModel, CommentModel, LikeModel, NewsletterSubscriberModel }; 
