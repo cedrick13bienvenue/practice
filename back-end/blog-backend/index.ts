@@ -9,6 +9,7 @@ import { blogRouter } from './src/routes/blog-routes';
 import authRouter from './src/routes/auth-routes';
 import { commentRouter } from './src/routes/comment-routes';
 import { likeRouter } from './src/routes/like-routes';
+import { newsletterRouter } from './src/routes/newsletter-routes';
 import { syncModels } from './src/models';
 import { ensureAuthenticated } from './src/middlewares/auth';
 import { swaggerSpec, swaggerUi } from './src/swagger';
@@ -38,6 +39,7 @@ app.use('/api', blogRouter);
 app.use('/api/auth', authRouter);
 app.use('/api', commentRouter);
 app.use('/api', likeRouter);
+app.use('/api/newsletter', newsletterRouter);
 app.use(authRouter);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
