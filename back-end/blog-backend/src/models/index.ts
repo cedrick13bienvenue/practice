@@ -1,4 +1,4 @@
-import { sequelize } from '../config/db';
+import { getSequelize } from '../config/db';
 import { UserModel, associateModels as associateUser } from './user-model';
 import { BlogModel, associateModels as associateBlog } from './blog-model';
 import { CommentModel, associateModels as associateComment } from './comment-model';
@@ -14,6 +14,7 @@ associateLike(models);
 
 // Sync models with the database
 export const syncModels = async () => {
+  const sequelize = getSequelize();
   await sequelize.sync({ alter: true }); // Use alter for dev, switch to false for prod
 };
 
