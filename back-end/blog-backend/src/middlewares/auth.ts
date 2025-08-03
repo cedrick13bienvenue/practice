@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { blacklistedSessions } from './session-blacklist';
 import jwt from 'jsonwebtoken';
-import { SECRET_KEY } from '../utils/jwt';
+import { SECRET_KEY, generateToken } from '../utils/jwt';
 
 export function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (
@@ -30,4 +30,41 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   } catch (error) {
     return res.status(403).json({ message: 'Invalid or expired token' });
   }
-} 
+}
+
+// Middleware to check if user is already authenticated (for OAuth2)
+export const checkAlreadyAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    const user = req.user as any;
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+
+    return res.json({
+      success: true,
+      message: 'Already authenticated',
+      token
+    });
+  }
+  next();
+};
+
+// Middleware to generate token for authenticated user
+export const generateTokenForUser = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    const user = req.user as any;
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    });
+    
+    // Attach token to request for use in controllers
+    (req as any).generatedToken = token;
+  }
+  next();
+}; 
