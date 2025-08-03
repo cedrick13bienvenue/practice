@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { subscribeToNewsletter, unsubscribeFromNewsletter, getAllSubscribers, getSubscriberCount } from '../controllers/newsletter-controller';
 import { authenticateToken } from '../middlewares/auth';
-import { ResponseService } from '../utils/response';
 
 const newsletterRouter = Router();
 
