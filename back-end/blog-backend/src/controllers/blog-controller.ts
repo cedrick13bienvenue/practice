@@ -5,6 +5,7 @@ import { CommentModel } from '../models/comment-model';
 import { generateSlug } from '../utils/helper';
 import { ResponseService } from '../utils/response';
 import { uploadFile } from '../utils/upload';
+import { triggerBlogCreated } from '../services/event-service';
 
 export const getAllBlogs = async (_req: Request, res: Response) => {
   try {
@@ -82,6 +83,18 @@ export const createBlog = async (req: Request, res: Response) => {
       image: imageUrl,
       createdAt: new Date(),
     });
+
+    // Trigger blog created event for newsletter notifications
+    if (isPublishedBool) {
+      try {
+        triggerBlogCreated(blog.toJSON());
+        console.log('🎯 Blog created event triggered for newsletter notifications');
+      } catch (error) {
+        console.error('❌ Failed to trigger blog created event:', error);
+        // Don't fail the blog creation if event fails
+      }
+    }
+
     ResponseService({
       res,
       data: blog,
