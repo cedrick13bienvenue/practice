@@ -1,6 +1,7 @@
 import { NewsletterSubscriberModel } from '../models/newsletter-subscriber-model';
 import { sendSubscriptionConfirmation, sendUnsubscribeConfirmation, sendNewBlogNotification } from '../utils/email';
 import { ResponseService } from '../utils/response';
+import { EmailQueueService } from './email-queue-service';
 
 export class NewsletterService {
   // Subscribe to newsletter
@@ -25,8 +26,8 @@ export class NewsletterService {
             unsubscribedAt: undefined
           });
           
-          // Send confirmation email
-          await sendSubscriptionConfirmation(email, {
+          // Queue confirmation email
+          await EmailQueueService.queueSubscriptionConfirmation(email, {
             subscribedAt: existingSubscriber.subscribedAt
           });
           
@@ -48,8 +49,8 @@ export class NewsletterService {
         subscribedAt: new Date()
       });
 
-      // Send confirmation email
-      await sendSubscriptionConfirmation(email, {
+      // Queue confirmation email
+      await EmailQueueService.queueSubscriptionConfirmation(email, {
         subscribedAt: newSubscriber.subscribedAt
       });
 
@@ -96,8 +97,8 @@ export class NewsletterService {
         unsubscribedAt: new Date()
       });
 
-      // Send unsubscribe confirmation email
-      await sendUnsubscribeConfirmation(email);
+      // Queue unsubscribe confirmation email
+      await EmailQueueService.queueUnsubscribeConfirmation(email);
 
       return {
         success: true,
@@ -154,36 +155,21 @@ export class NewsletterService {
     }
   }
 
-  // Send notification to all active subscribers
+  // Queue notification to all active subscribers
   static async notifyAllSubscribers(blogData: any) {
     try {
-      const subscribers = await NewsletterSubscriberModel.findAll({
-        where: { isActive: true },
-        attributes: ['email']
-      });
-
-      console.log(`📧 Notifying ${subscribers.length} active subscribers about new blog post`);
-
-      const emailPromises = subscribers.map(subscriber => 
-        sendNewBlogNotification(subscriber.email, blogData)
-      );
-
-      const results = await Promise.allSettled(emailPromises);
+      await EmailQueueService.queueNewBlogNotification(blogData);
       
-      const successful = results.filter(result => result.status === 'fulfilled').length;
-      const failed = results.filter(result => result.status === 'rejected').length;
-
       return {
         success: true,
-        message: `Notification sent to ${successful} subscribers`,
+        message: 'Blog notification queued for processing',
         data: {
-          totalSubscribers: subscribers.length,
-          successfulEmails: successful,
-          failedEmails: failed
+          blogTitle: blogData.title,
+          queuedAt: new Date()
         }
       };
     } catch (error) {
-      console.error('❌ Notify subscribers error:', error);
+      console.error('❌ Queue notification error:', error);
       throw error;
     }
   }
