@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { NewsletterSubscriberModel } from '../models/newsletter-subscriber-model';
-import { sendNewBlogNotification } from '../utils/email';
+import { EmailQueueService } from './email-queue-service';
 
 // Create event emitter instance
 export const eventEmitter = new EventEmitter();
@@ -17,32 +17,16 @@ export const handleBlogCreated = async (blogData: any) => {
   try {
     console.log('📧 Blog created event triggered:', blogData.title);
     
-    // Get all active subscribers
-    const subscribers = await NewsletterSubscriberModel.findAll({
-      where: { isActive: true },
-      attributes: ['email']
-    });
+    // Queue notification for all active subscribers
+    await EmailQueueService.queueNewBlogNotification(blogData);
     
-    console.log(`📧 Found ${subscribers.length} active subscribers to notify`);
-    
-    // Send notification to each subscriber
-    const emailPromises = subscribers.map(subscriber => 
-      sendNewBlogNotification(subscriber.email, blogData)
-    );
-    
-    // Wait for all emails to be sent
-    const results = await Promise.allSettled(emailPromises);
-    
-    // Log results
-    const successful = results.filter(result => result.status === 'fulfilled').length;
-    const failed = results.filter(result => result.status === 'rejected').length;
-    
-    console.log(`📧 Email notifications sent: ${successful} successful, ${failed} failed`);
+    console.log(`📧 Blog notification queued for processing`);
     
     return {
-      totalSubscribers: subscribers.length,
-      successfulEmails: successful,
-      failedEmails: failed
+      success: true,
+      message: 'Blog notification queued successfully',
+      blogTitle: blogData.title,
+      queuedAt: new Date()
     };
   } catch (error) {
     console.error('❌ Error handling blog created event:', error);
