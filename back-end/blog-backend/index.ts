@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import morgan from 'morgan';
+import logger, { stream, logAPI } from './src/config/logger';
 import './src/middlewares/google-auth'; // Register Google OAuth2 strategy
 import session from 'express-session';
 import passport from 'passport';
@@ -25,6 +27,9 @@ const PORT = process.env.PORT || 5500;
 app.use(cors());
 app.use(express.json());
 
+// HTTP request logging
+app.use(morgan('combined', { stream }));
+
 // Session middleware (must come before passport)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret',
@@ -48,6 +53,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Root route
 app.get('/', (_req, res) => {
+  logAPI('Root endpoint accessed');
   res.send('📝 Blog API');
 });
 
@@ -61,14 +67,20 @@ export { app };
 // Start server only if this file is run directly
 if (require.main === module) {
   (async () => {
-    await connectDB();
-    await syncModels();
-    
-    // Register event handlers for newsletter notifications
-    registerEventHandlers();
-    
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+    try {
+      await connectDB();
+      await syncModels();
+      
+      // Register event handlers for newsletter notifications
+      registerEventHandlers();
+      
+      app.listen(PORT, () => {
+        logger.info(`🚀 Server running on port ${PORT}`);
+        logAPI(`Server started successfully on port ${PORT}`);
+      });
+    } catch (error) {
+      logger.error('❌ Failed to start server:', error);
+      process.exit(1);
+    }
   })();
 }

@@ -1,6 +1,7 @@
 import { redisClient, QUEUES, EMAIL_JOB_TYPES, queueUtils, EmailJob } from '../config/redis';
 import { sendNewBlogNotification, sendSubscriptionConfirmation, sendUnsubscribeConfirmation } from '../utils/email';
 import { NewsletterSubscriberModel } from '../models/newsletter-subscriber-model';
+import logger, { logEmailQueue } from '../config/logger';
 
 export class EmailWorker {
   private isRunning: boolean = false;
@@ -13,18 +14,18 @@ export class EmailWorker {
   // Start the email worker
   async start(): Promise<void> {
     if (this.isRunning) {
-      console.log('⚠️ Email worker is already running');
+      logger.warn('⚠️ Email worker is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log(`🚀 Starting email worker: ${this.workerId}`);
+    logEmailQueue(`Starting email worker: ${this.workerId}`);
 
     try {
       // Process main email queue
       await this.processMainQueue();
     } catch (error) {
-      console.error('❌ Email worker error:', error);
+      logger.error('❌ Email worker error:', error);
       this.isRunning = false;
       throw error;
     }
@@ -33,12 +34,12 @@ export class EmailWorker {
   // Stop the email worker
   stop(): void {
     this.isRunning = false;
-    console.log(`🛑 Stopping email worker: ${this.workerId}`);
+    logEmailQueue(`Stopping email worker: ${this.workerId}`);
   }
 
   // Process main email queue
   private async processMainQueue(): Promise<void> {
-    console.log(`📧 Worker ${this.workerId} listening for email jobs...`);
+    logEmailQueue(`Worker ${this.workerId} listening for email jobs...`);
 
     while (this.isRunning) {
       try {
@@ -46,11 +47,11 @@ export class EmailWorker {
         const job = await queueUtils.getFromQueue(QUEUES.EMAIL_QUEUE);
         
         if (job) {
-          console.log(`📧 Processing job: ${job.type} (${job.subscribers.length} subscribers)`);
+          logEmailQueue(`Processing job: ${job.type} (${job.subscribers.length} subscribers)`);
           await this.processEmailJob(job);
         }
       } catch (error) {
-        console.error('❌ Error processing email job:', error);
+        logger.error('❌ Error processing email job:', error);
         // Continue processing other jobs
       }
     }
@@ -78,7 +79,7 @@ export class EmailWorker {
       }
 
       const duration = Date.now() - startTime;
-      console.log(`✅ Job completed: ${job.type} - ${successCount} success, ${failureCount} failed (${duration}ms)`);
+      logEmailQueue(`Job completed: ${job.type} - ${successCount} success, ${failureCount} failed (${duration}ms)`);
 
       // If there were failures, move to retry queue
       if (failureCount > 0) {
@@ -86,7 +87,7 @@ export class EmailWorker {
       }
 
     } catch (error) {
-      console.error(`❌ Error processing job ${job.type}:`, error);
+      logger.error(`❌ Error processing job ${job.type}:`, error);
       await queueUtils.moveToRetryQueue(job);
     }
   }
@@ -103,10 +104,10 @@ export class EmailWorker {
       try {
         await sendNewBlogNotification(email, blogData);
         successCount++;
-        console.log(`✅ Blog notification sent to: ${email}`);
+        logEmailQueue(`Blog notification sent to: ${email}`);
       } catch (error) {
         failureCount++;
-        console.error(`❌ Failed to send blog notification to ${email}:`, error);
+        logger.error(`❌ Failed to send blog notification to ${email}:`, error);
       }
     }
   }
@@ -123,10 +124,10 @@ export class EmailWorker {
       try {
         await sendSubscriptionConfirmation(email, subscriberData);
         successCount++;
-        console.log(`✅ Subscription confirmation sent to: ${email}`);
+        logEmailQueue(`Subscription confirmation sent to: ${email}`);
       } catch (error) {
         failureCount++;
-        console.error(`❌ Failed to send subscription confirmation to ${email}:`, error);
+        logger.error(`❌ Failed to send subscription confirmation to ${email}:`, error);
       }
     }
   }
@@ -143,27 +144,27 @@ export class EmailWorker {
       try {
         await sendUnsubscribeConfirmation(email);
         successCount++;
-        console.log(`✅ Unsubscribe confirmation sent to: ${email}`);
+        logEmailQueue(`Unsubscribe confirmation sent to: ${email}`);
       } catch (error) {
         failureCount++;
-        console.error(`❌ Failed to send unsubscribe confirmation to ${email}:`, error);
+        logger.error(`❌ Failed to send unsubscribe confirmation to ${email}:`, error);
       }
     }
   }
 
   // Process retry queue
   async processRetryQueue(): Promise<void> {
-    console.log(`🔄 Processing retry queue...`);
+    logEmailQueue(`Processing retry queue...`);
     
     while (this.isRunning) {
       try {
         const job = await queueUtils.getFromQueue(QUEUES.EMAIL_RETRY_QUEUE);
         if (job) {
-          console.log(`🔄 Retrying job: ${job.type} (attempt ${job.retryCount})`);
+          logEmailQueue(`Retrying job: ${job.type} (attempt ${job.retryCount})`);
           await this.processEmailJob(job);
         }
       } catch (error) {
-        console.error('❌ Error processing retry queue:', error);
+        logger.error('❌ Error processing retry queue:', error);
       }
     }
   }
@@ -196,20 +197,20 @@ export const startEmailWorker = async (): Promise<void> => {
   try {
     await emailWorker.start();
   } catch (error) {
-    console.error('❌ Failed to start email worker:', error);
+    logger.error('❌ Failed to start email worker:', error);
     process.exit(1);
   }
 };
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('🛑 Received SIGINT, shutting down email worker...');
+  logger.info('🛑 Received SIGINT, shutting down email worker...');
   emailWorker.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('🛑 Received SIGTERM, shutting down email worker...');
+  logger.info('🛑 Received SIGTERM, shutting down email worker...');
   emailWorker.stop();
   process.exit(0);
 }); 

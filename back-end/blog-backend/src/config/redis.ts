@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
+import logger from './logger';
 
 dotenv.config();
 
@@ -17,15 +18,15 @@ export const redisClient = new Redis(redisConfig);
 
 // Redis event handlers
 redisClient.on('connect', () => {
-  console.log('🔴 Redis connected successfully');
+  logger.info('🔴 Redis connected successfully');
 });
 
 redisClient.on('error', (error) => {
-  console.error('❌ Redis connection error:', error);
+  logger.error('❌ Redis connection error:', error);
 });
 
 redisClient.on('close', () => {
-  console.log('🔴 Redis connection closed');
+  logger.info('🔴 Redis connection closed');
 });
 
 // Queue names
@@ -57,9 +58,9 @@ export const queueUtils = {
   async addToQueue(queueName: string, job: EmailJob): Promise<void> {
     try {
       await redisClient.lpush(queueName, JSON.stringify(job));
-      console.log(`📧 Job added to queue: ${queueName}`);
+      logger.info(`📧 Job added to queue: ${queueName}`);
     } catch (error) {
-      console.error('❌ Error adding job to queue:', error);
+      logger.error('❌ Error adding job to queue:', error);
       throw error;
     }
   },
@@ -73,7 +74,7 @@ export const queueUtils = {
       }
       return null;
     } catch (error) {
-      console.error('❌ Error getting job from queue:', error);
+      logger.error('❌ Error getting job from queue:', error);
       throw error;
     }
   },
@@ -83,10 +84,10 @@ export const queueUtils = {
     if ((job.retryCount || 0) < maxRetries) {
       job.retryCount = (job.retryCount || 0) + 1;
       await this.addToQueue(QUEUES.EMAIL_RETRY_QUEUE, job);
-      console.log(`🔄 Job moved to retry queue (attempt ${job.retryCount}/${maxRetries})`);
+      logger.info(`🔄 Job moved to retry queue (attempt ${job.retryCount}/${maxRetries})`);
     } else {
       await this.addToQueue(QUEUES.EMAIL_DEAD_LETTER_QUEUE, job);
-      console.log(`💀 Job moved to dead letter queue after ${maxRetries} retries`);
+      logger.warn(`💀 Job moved to dead letter queue after ${maxRetries} retries`);
     }
   },
 
@@ -104,9 +105,9 @@ export const queueUtils = {
   async clearQueue(queueName: string): Promise<void> {
     try {
       await redisClient.del(queueName);
-      console.log(`🧹 Queue cleared: ${queueName}`);
+      logger.info(`🧹 Queue cleared: ${queueName}`);
     } catch (error) {
-      console.error('❌ Error clearing queue:', error);
+      logger.error('❌ Error clearing queue:', error);
       throw error;
     }
   },
