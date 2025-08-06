@@ -16,7 +16,7 @@ services:
     networks:
       - blog_network
 
-  # Redis (for future message queuing)
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: blog_redis
@@ -56,13 +56,13 @@ services:
     command: ["npm", "run", "dev"]
     restart: unless-stopped
 
-  # Email Worker (for future implementation)
+  # Email Worker (for processing email queues)
   email-worker:
     build: .
     container_name: blog_email_worker
     command: ["npm", "run", "worker:email"]
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=blog_db
@@ -75,9 +75,11 @@ services:
       - redis
     networks:
       - blog_network
-    restart: unless-stopped
+    volumes:
+      - .:/app
+      - /app/node_modules
     profiles:
-      - worker
+      - email-worker
 
 volumes:
   postgres_data:
