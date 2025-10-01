@@ -3,7 +3,7 @@ import json
 import os
 from urllib.parse import urlparse, parse_qs
 
-DATA_FILE = "data.json" 
+DATA_FILE = "data.json"
 
 
 def read_data():
@@ -29,13 +29,15 @@ class MotoBookingServer(BaseHTTPRequestHandler):
         bookings = read_data()
         if "id" in query:
             booking_id = int(query["id"][0])
-            booking = next((b for b in bookings if b["id"] == booking_id), None)
+            booking = next(
+                (b for b in bookings if b["id"] == booking_id), None)
             if booking:
                 self._set_headers(200)
                 self.wfile.write(json.dumps(booking).encode("utf-8"))
             else:
                 self._set_headers(404)
-                self.wfile.write(json.dumps({"error": "Booking not found"}).encode("utf-8"))
+                self.wfile.write(json.dumps(
+                    {"error": "Booking not found"}).encode("utf-8"))
         else:
             self._set_headers(200)
             self.wfile.write(json.dumps(bookings).encode("utf-8"))
@@ -52,6 +54,56 @@ class MotoBookingServer(BaseHTTPRequestHandler):
 
         self._set_headers(201)
         self.wfile.write(json.dumps(new_booking).encode("utf-8"))
+
+    def do_PUT(self):
+        query = parse_qs(urlparse(self.path).query)
+        if "id" not in query:
+            self._set_headers(400)
+            self.wfile.write(json.dumps(
+                {"error": "ID required for update"}).encode("utf-8"))
+            return
+
+        booking_id = int(query["id"][0])
+        content_length = int(self.headers["Content-Length"])
+        put_data = self.rfile.read(content_length)
+        updated_fields = json.loads(put_data.decode("utf-8"))
+
+        bookings = read_data()
+        booking = next((b for b in bookings if b["id"] == booking_id), None)
+
+        if booking:
+            booking.update(updated_fields)
+            booking["id"] = booking_id  # Ensure ID remains unchanged
+            write_data(bookings)
+            self._set_headers(200)
+            self.wfile.write(json.dumps(booking).encode("utf-8"))
+        else:
+            self._set_headers(404)
+            self.wfile.write(json.dumps(
+                {"error": "Booking not found"}).encode("utf-8"))
+
+    def do_DELETE(self):
+        query = parse_qs(urlparse(self.path).query)
+        if "id" not in query:
+            self._set_headers(400)
+            self.wfile.write(json.dumps(
+                {"error": "ID required for deletion"}).encode("utf-8"))
+            return
+
+        booking_id = int(query["id"][0])
+        bookings = read_data()
+        booking = next((b for b in bookings if b["id"] == booking_id), None)
+
+        if booking:
+            bookings = [b for b in bookings if b["id"] != booking_id]
+            write_data(bookings)
+            self._set_headers(200)
+            self.wfile.write(json.dumps(
+                {"message": "Booking deleted successfully"}).encode("utf-8"))
+        else:
+            self._set_headers(404)
+            self.wfile.write(json.dumps(
+                {"error": "Booking not found"}).encode("utf-8"))
 
 
 def run(server_class=HTTPServer, handler_class=MotoBookingServer, port=8000):
