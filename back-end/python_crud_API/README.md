@@ -1,83 +1,186 @@
-# ALU_CRUD_API
+# Moto Booking API
 
-A simple Python HTTP server implementing full CRUD operations for a moto booking system.
+A modular RESTful API built with Flask for managing moto taxi bookings in Kigali, Rwanda.
 
-## Features
+## 🚀 Features
 
-- **Create** new bookings
-- **Read** all bookings or a specific booking by ID
-- **Update** existing bookings
-- **Delete** bookings
+- Full CRUD operations for bookings
+- RESTful API design
+- Interactive Swagger/OpenAPI documentation
+- Modular architecture with separation of concerns
+- CORS support
+- JSON data persistence
 
-## Setup
+## 📁 Project Structure
 
-1. Ensure you have Python 3 installed
-2. Navigate to the project directory
-3. Run the server:
+```
+.
+├── app.py                      # Application entry point
+├── requirements.txt            # Python dependencies
+├── config/
+│   └── config.py              # Configuration settings
+├── models/
+│   └── booking.py             # Data models and schemas
+├── services/
+│   └── booking_service.py     # Business logic layer
+├── routes/
+│   └── booking_routes.py      # API endpoints and routes
+└── data/
+    └── data.json              # JSON database
+```
+
+## 🛠️ Setup
+
+1. **Create a virtual environment** (recommended):
+
    ```bash
-   python server.py
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-The server will start at `http://127.0.0.1:8000`
+2. **Install dependencies**:
 
-## API Endpoints
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### GET - Retrieve Bookings
+3. **Run the application**:
+   ```bash
+   python app.py
+   ```
 
-**Get all bookings:**
+The API will start at `http://127.0.0.1:8000`
 
-```bash
-curl http://127.0.0.1:8000
+## 📚 API Documentation
+
+Interactive Swagger documentation is available at:
+
+```
+http://127.0.0.1:8000/docs
 ```
 
-**Get a specific booking by ID:**
+## 🔌 API Endpoints
+
+Base URL: `http://127.0.0.1:8000/api/v1`
+
+### Get All Bookings
 
 ```bash
-curl http://127.0.0.1:8000?id=1
+GET /api/v1/bookings/
 ```
 
-### POST - Create a New Booking
+### Get Booking by ID
 
 ```bash
-curl -X POST http://127.0.0.1:8000 \
+GET /api/v1/bookings/{id}
+```
+
+### Create New Booking
+
+```bash
+POST /api/v1/bookings/
+Content-Type: application/json
+
+{
+  "customer_name": "John Doe",
+  "pickup": "Kigali City Center",
+  "destination": "Airport",
+  "fare": 3000,
+  "status": "pending"
+}
+```
+
+### Update Booking
+
+```bash
+PUT /api/v1/bookings/{id}
+Content-Type: application/json
+
+{
+  "status": "confirmed",
+  "fare": 2500
+}
+```
+
+### Delete Booking
+
+```bash
+DELETE /api/v1/bookings/{id}
+```
+
+## 📊 Data Model
+
+| Field         | Type    | Required | Description                                            |
+| ------------- | ------- | -------- | ------------------------------------------------------ |
+| id            | integer | auto     | Unique identifier                                      |
+| customer_name | string  | yes      | Customer's name                                        |
+| pickup        | string  | yes      | Pickup location                                        |
+| destination   | string  | yes      | Destination location                                   |
+| fare          | integer | yes      | Fare amount in RWF                                     |
+| status        | string  | yes      | Booking status (pending/confirmed/completed/cancelled) |
+
+## 🧪 Example Usage with curl
+
+**Create a booking:**
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/bookings/ \
   -H "Content-Type: application/json" \
   -d '{
-    "customer_name": "John",
-    "pickup": "Kigali City Center",
-    "destination": "Airport",
-    "fare": 3000,
+    "customer_name": "Jane Smith",
+    "pickup": "Remera",
+    "destination": "Kimironko",
+    "fare": 1200,
     "status": "pending"
   }'
 ```
 
-### PUT - Update an Existing Booking
+**Get all bookings:**
 
 ```bash
-curl -X PUT "http://127.0.0.1:8000?id=1" \
+curl http://127.0.0.1:8000/api/v1/bookings/
+```
+
+**Update a booking:**
+
+```bash
+curl -X PUT http://127.0.0.1:8000/api/v1/bookings/1 \
   -H "Content-Type: application/json" \
-  -d '{
-    "status": "completed",
-    "fare": 1500
-  }'
+  -d '{"status": "completed"}'
 ```
 
-### DELETE - Remove a Booking
+**Delete a booking:**
 
 ```bash
-curl -X DELETE "http://127.0.0.1:8000?id=1"
+curl -X DELETE http://127.0.0.1:8000/api/v1/bookings/1
 ```
 
-## Data Structure
+## 🏗️ Architecture
 
-Each booking contains:
+- **app.py**: Application factory and initialization
+- **config/**: Configuration management
+- **models/**: Data models and schema definitions
+- **services/**: Business logic and data operations
+- **routes/**: API endpoints and request handling
+- **data/**: JSON file storage
 
-- `id` (number) - Auto-generated unique identifier
-- `customer_name` (string) - Name of the customer
-- `pickup` (string) - Pickup location
-- `destination` (string) - Destination location
-- `fare` (number) - Fare amount in RWF
-- `status` (string) - Booking status (e.g., "pending", "confirmed", "completed")
+## 🔧 Configuration
 
-## Data Storage
+Edit `config/config.py` to modify:
 
-Bookings are stored in `data.json` and persist across server restarts.
+- Server host and port
+- Data file location
+- Debug mode
+- Environment-specific settings
+
+## 📝 License
+
+MIT License
+
+---
+
+**Commit message:**
+
+```
+docs: update README with modular architecture and comprehensive API documentation
+```
