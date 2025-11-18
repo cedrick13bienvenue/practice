@@ -178,9 +178,3 @@ Edit `config/config.py` to modify:
 MIT License
 
 ---
-
-**Commit message:**
-
-```
-docs: update README with modular architecture and comprehensive API documentation
-```
