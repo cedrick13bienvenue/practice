@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
 const productRoutes = require("../../routes/product.routes");
@@ -16,12 +15,9 @@ const PORT = process.env.PRODUCT_SERVICE_PORT || 3001;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Logging middleware
 app.use(httpLogger);
 app.use(requestLogger);
 
-// Service identification
 app.use((req, res, next) => {
   res.setHeader("X-Service-Name", "product-service");
   res.setHeader("X-Service-Version", "1.0.0");
@@ -31,7 +27,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api", productRoutes);
 
-// Health check endpoint
+// Health check
 app.get("/health", (req, res) => {
   const healthcheck = {
     uptime: process.uptime(),
@@ -41,81 +37,60 @@ app.get("/health", (req, res) => {
     database:
       mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   };
-
   logger.info("Health check requested", healthcheck);
-
   res.status(200).json(healthcheck);
 });
 
-// Service info endpoint
+// Service info
 app.get("/", (req, res) => {
   res.json({
     service: "Product Microservice",
     version: "1.0.0",
+    port: PORT,
     endpoints: [
-      "GET /api/products - Get all products",
-      "GET /api/product/:id - Get product by ID",
-      "POST /api/products - Create new product",
-      "PUT /api/product/:id - Update product",
-      "DELETE /api/product/:id - Delete product",
+      "GET /api/products",
+      "GET /api/product/:id",
+      "POST /api/products",
+      "PUT /api/product/:id",
+      "DELETE /api/product/:id",
+      "GET /health",
     ],
   });
 });
 
-// Error logging middleware
 app.use(errorLogger);
 
-// Global error handler
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-
-  logger.error("Unhandled error", {
-    error: err.message,
-    stack: err.stack,
-    statusCode,
-  });
-
-  res.status(statusCode).json({
+  logger.error("Unhandled error", { error: err.message, stack: err.stack });
+  res.status(err.statusCode || 500).json({
     success: false,
     error: err.message || "Internal server error",
     service: "product-service",
   });
 });
 
-// Database Connection and Server Start
+// Database Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    logger.info("Connected to MongoDB database successfully", {
-      database: "Node-API",
-      host: "backend-db.bihfz7h.mongodb.net",
-    });
-
+    logger.info("Connected to MongoDB database successfully");
     app.listen(PORT, () => {
-      logger.info(`Product Service is running on port ${PORT}`, {
+      logger.info(`Product Service running on port ${PORT}`, {
         port: PORT,
         environment: process.env.NODE_ENV || "development",
-        nodeVersion: process.version,
       });
     });
   })
   .catch((error) => {
-    logger.error("Database connection failed", {
-      error: error.message,
-      stack: error.stack,
-    });
+    logger.error("Database connection failed", { error: error.message });
     process.exit(1);
   });
 
-// Graceful shutdown
 process.on("SIGTERM", () => {
   logger.info("SIGTERM signal received: closing HTTP server");
-  app.close(() => {
-    logger.info("HTTP server closed");
-    mongoose.connection.close(false, () => {
-      logger.info("MongoDB connection closed");
-      process.exit(0);
-    });
+  mongoose.connection.close(false, () => {
+    logger.info("MongoDB connection closed");
+    process.exit(0);
   });
 });
 

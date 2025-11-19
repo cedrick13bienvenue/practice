@@ -1,44 +1,71 @@
 {
   "name": "simple-crud",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Production-ready microservices architecture with API Gateway, comprehensive logging, and CRUD operations",
+  "main": "services/product-service/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "node index.js",
     "dev": "nodemon index.js",
-    "gateway": "node gateway/gateway.js",
     "product-service": "node services/product-service/index.js",
-    "dev:gateway": "nodemon gateway/gateway.js",
+    "gateway": "node gateway/gateway.js",
     "dev:product-service": "nodemon services/product-service/index.js",
-    "start:all": "concurrently \"npm run dev:gateway\" \"npm run dev:product-service\"",
+    "dev:gateway": "nodemon gateway/gateway.js",
+    "start:all": "concurrently --kill-others --names \"GATEWAY,PRODUCT\" -c \"blue.bold,green.bold\" \"npm run dev:gateway\" \"npm run dev:product-service\"",
+    "start:prod": "concurrently --kill-others --names \"GATEWAY,PRODUCT\" \"npm run gateway\" \"npm run product-service\"",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop all",
+    "pm2:restart": "pm2 restart all",
+    "pm2:delete": "pm2 delete all",
+    "pm2:logs": "pm2 logs",
+    "pm2:monit": "pm2 monit",
     "logs:view": "tail -f logs/combined.log",
     "logs:error": "tail -f logs/error.log",
-    "logs:clear": "rm -rf logs/*.log"
+    "logs:clear": "rm -rf logs/*.log",
+    "logs:watch": "concurrently --kill-others --names \"COMBINED,ERROR\" -c \"cyan,red\" \"npm run logs:view\" \"npm run logs:error\"",
+    "setup": "mkdir -p logs && npm install",
+    "clean": "rm -rf node_modules logs/*.log",
+    "reinstall": "npm run clean && npm install"
   },
   "keywords": [
     "microservices",
     "api-gateway",
     "logging",
     "crud",
-    "mongodb"
+    "mongodb",
+    "express",
+    "winston",
+    "production-ready",
+    "rate-limiting",
+    "authentication",
+    "proxy",
+    "service-discovery"
   ],
-  "author": "",
+  "author": "Cedrick Bienvenue",
   "license": "ISC",
-  "description": "Microservices architecture with API Gateway and comprehensive logging",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/simple-crud.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "mongodb": "^6.15.0",
-    "mongoose": "^8.13.2",
-    "winston": "^3.11.0",
-    "morgan": "^1.10.0",
-    "http-proxy-middleware": "^2.0.6",
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
-    "cors": "^2.8.5"
+    "http-proxy-middleware": "^2.0.6",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.2",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.9"
   }
 }
