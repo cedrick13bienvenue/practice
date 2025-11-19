@@ -5,19 +5,40 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "gateway": "node gateway/gateway.js",
+    "product-service": "node services/product-service/index.js",
+    "dev:gateway": "nodemon gateway/gateway.js",
+    "dev:product-service": "nodemon services/product-service/index.js",
+    "start:all": "concurrently \"npm run dev:gateway\" \"npm run dev:product-service\"",
+    "logs:view": "tail -f logs/combined.log",
+    "logs:error": "tail -f logs/error.log",
+    "logs:clear": "rm -rf logs/*.log"
   },
-  "keywords": [],
+  "keywords": [
+    "microservices",
+    "api-gateway",
+    "logging",
+    "crud",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Microservices architecture with API Gateway and comprehensive logging",
   "dependencies": {
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongodb": "^6.15.0",
-    "mongoose": "^8.13.2"
+    "mongoose": "^8.13.2",
+    "winston": "^3.11.0",
+    "morgan": "^1.10.0",
+    "http-proxy-middleware": "^2.0.6",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "concurrently": "^8.2.2"
   }
 }
