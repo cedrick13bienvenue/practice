@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: simple-crud-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Gateway
+  api-gateway:
+    build: .
+    container_name: simple-crud-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      NODE_ENV: development
+      GATEWAY_PORT: 8000
+      PRODUCT_SERVICE_URL: http://product-service:3001
+      API_KEY: your-secure-api-key
+      LOG_LEVEL: info
+    depends_on:
+      - product-service
+    command: npm run dev:gateway
+    volumes:
+      - ./logs/gateway:/app/logs
+      - ./gateway:/app/gateway
+      - ./config:/app/config
+      - ./middleware:/app/middleware
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Product Microservice
+  product-service:
+    build: .
+    container_name: simple-crud-product
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PRODUCT_SERVICE_PORT: 3001
+      MONGO_URI: mongodb://admin:password@mongodb:27017/simple-crud?authSource=admin
+      LOG_LEVEL: info
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: npm run dev:product-service
+    volumes:
+      - ./logs/product:/app/logs
+      - ./services:/app/services
+      - ./routes:/app/routes
+      - ./controllers:/app/controllers
+      - ./models:/app/models
+      - ./config:/app/config
+      - ./middleware:/app/middleware
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
