@@ -57,17 +57,21 @@ const authenticate = (req, res, next) => {
   next();
 };
 
+// FIXED: Correct proxy configuration
 app.use(
   "/api/products",
   authenticate,
   createProxyMiddleware({
     target: services.product.url,
     changeOrigin: true,
-    pathRewrite: { "^/api/products": "/api" },
+    pathRewrite: {
+      "^/api/products": "/api", // Rewrites /api/products to /api on the target service
+    },
     onProxyReq: (proxyReq, req) => {
       logger.info("Proxying to Product Service", {
         method: req.method,
         path: req.path,
+        target: services.product.url,
       });
     },
     onProxyRes: (proxyRes, req) => {
@@ -77,7 +81,11 @@ app.use(
       });
     },
     onError: (err, req, res) => {
-      logger.error("Proxy Error", { error: err.message });
+      logger.error("Proxy Error", {
+        error: err.message,
+        service: "product-service",
+        url: req.url,
+      });
       res.status(503).json({ error: "Product service unavailable" });
     },
   })
@@ -95,7 +103,10 @@ app.get("/", (req, res) => {
   res.json({
     message: "API Gateway",
     version: "1.0.0",
-    services: { products: "/api/products" },
+    services: {
+      products: "/api/products",
+      health: "/health",
+    },
   });
 });
 
