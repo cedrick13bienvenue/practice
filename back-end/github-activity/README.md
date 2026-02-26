@@ -9,7 +9,9 @@ A CLI tool and REST API built with **TypeScript** and **Node.js** that fetches a
 - Fetch recent public activity for any GitHub user
 - CLI tool for quick terminal usage
 - REST API server with JSON and plain text responses
+- Accurate commit counts per push using the GitHub Compare API
 - Supports multiple event types: pushes, issues, pull requests, stars, forks, releases, and more
+- Optional `GITHUB_TOKEN` support via `.env` for higher rate limits
 
 ---
 
@@ -34,6 +36,7 @@ github-activity/
 
 - [Node.js](https://nodejs.org/) v18 or higher
 - npm
+- A GitHub Personal Access Token (recommended for commit counts and higher rate limits)
 
 ---
 
@@ -57,6 +60,23 @@ npm install
 ```bash
 npm run build
 ```
+
+**4. Set up your GitHub token (recommended)**
+
+Create a `.env` file in the project root:
+
+```bash
+GITHUB_TOKEN=your_token_here
+```
+
+To generate a token:
+1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Check the **`read:user`** scope
+4. Generate and paste it into `.env`
+
+> Without a token, commit counts won't be shown and you're limited to 60 API requests/hour.
+> With a token, you get full commit counts and 5,000 requests/hour.
 
 ---
 
@@ -218,7 +238,9 @@ GET /activity/torvalds?format=text
 - **TypeScript** — type-safe JavaScript
 - **Node.js** — runtime environment
 - **Express** — REST API framework
+- **dotenv** — environment variable management
 - **GitHub Events API** — public activity data source
+- **GitHub Compare API** — used to fetch accurate commit counts per push
 
 ---
 
