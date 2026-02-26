@@ -10,8 +10,11 @@ export function formatEvent(event: GitHubEvent): string {
 
   switch (event.type) {
     case "PushEvent": {
-      const count = event.payload.size ?? event.payload.commits?.length ?? 0;
-      return `Pushed ${count} commit${count !== 1 ? "s" : ""} to ${repo}`;
+      const count = event.payload.size ?? event.payload.commits?.length;
+      if (count !== undefined) {
+        return `Pushed ${count} commit${count !== 1 ? "s" : ""} to ${repo}`;
+      }
+      return `Pushed to ${repo}`;
     }
 
     case "IssuesEvent":
