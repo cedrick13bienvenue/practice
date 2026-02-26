@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { fetchUserActivity } from "./github";
+import { formatActivity } from "./formatter";
 import { ApiErrorResponse, ApiActivityResponse } from "./types";
 
 const app = express();
@@ -12,6 +13,7 @@ app.get("/", (_req: Request, res: Response) => {
     message: "GitHub Activity API",
     endpoints: {
       "GET /activity/:username": "Fetch recent GitHub activity for a user",
+      "GET /activity/:username?format=text": "Return activity as plain text",
     },
   });
 });
@@ -20,9 +22,16 @@ app.get(
   "/activity/:username",
   async (req: Request, res: Response<ApiActivityResponse | ApiErrorResponse>) => {
     const { username } = req.params;
+    const format = req.query.format as string | undefined;
 
     try {
       const events = await fetchUserActivity(username);
+
+      if (format === "text") {
+        res.type("text").send(formatActivity(events));
+        return;
+      }
+
       res.json({ username, count: events.length, activity: events });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
