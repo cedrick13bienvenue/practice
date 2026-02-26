@@ -51,6 +51,8 @@ export interface GitHubEventPayload {
   release?: GitHubRelease;
   member?: GitHubMember;
   size?: number;
+  before?: string;
+  head?: string;
 }
 
 export interface GitHubEvent {
