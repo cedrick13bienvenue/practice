@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+import "dotenv/config";
 
 import { fetchUserActivity } from "./github";
 import { formatActivity } from "./formatter";

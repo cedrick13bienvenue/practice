@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import { fetchUserActivity } from "./github";
 import { formatActivity } from "./formatter";
