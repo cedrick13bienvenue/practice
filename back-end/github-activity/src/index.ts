@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import { fetchUserActivity } from "./github";
 import { formatActivity } from "./formatter";
-import { ApiErrorResponse, ApiActivityResponse } from "./types";
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -20,7 +19,8 @@ app.get("/", (_req: Request, res: Response) => {
 
 app.get(
   "/activity/:username",
-  async (req: Request, res: Response<ApiActivityResponse | ApiErrorResponse>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async (req: Request, res: Response<any>) => {
     const { username } = req.params;
     const format = req.query.format as string | undefined;
 
